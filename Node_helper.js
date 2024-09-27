@@ -3,10 +3,11 @@ var request = require("request");
 
 module.exports = NodeHelper.create({
   start: function () {
-    console.log("MMM-airquality helper started...");
+    console.log("[MMM-airquality] Node Helper started"); // Log when node helper starts
   },
 
   socketNotificationReceived: function (notification, payload) {
+    console.log("[MMM-airquality] Received socket notification:", notification, payload); // Log when receiving socket notifications
     if (notification === "GET_AIR_QUALITY") {
       this.getAirQualityData(payload.apiKey, payload.latitude, payload.longitude);
     }
@@ -16,30 +17,32 @@ module.exports = NodeHelper.create({
     var self = this;
     var url = `https://api.airvisual.com/v2/nearest_city?lat=${latitude}&lon=${longitude}&key=${apiKey}`;
 
+    console.log("[MMM-airquality] Fetching data from API:", url); // Log API call
+
     request(url, function (error, response, body) {
       if (error) {
-        console.error("Error requesting air quality data: ", error);
+        console.error("[MMM-airquality] Error requesting air quality data:", error); // Log request error
         return;
       }
       if (response.statusCode !== 200) {
-        console.error("Received non-200 response from air quality API: ", response.statusCode);
+        console.error("[MMM-airquality] Non-200 response from API:", response.statusCode); // Log non-200 response
         return;
       }
 
       var result;
       try {
         result = JSON.parse(body);
+        console.log("[MMM-airquality] Data received from API:", result); // Log data from API
       } catch (e) {
-        console.error("Error parsing air quality API response: ", e);
+        console.error("[MMM-airquality] Error parsing API response:", e); // Log parsing errors
         return;
       }
 
       if (!result || !result.data || !result.data.current || !result.data.current.pollution) {
-        console.error("Invalid air quality data received from API.");
+        console.error("[MMM-airquality] Invalid data received from API"); // Log if API data is invalid
         return;
       }
 
-      // Parse relevant data from API response
       var airQualityData = {
         city: result.data.city,
         aqiUS: result.data.current.pollution.aqius,
@@ -48,6 +51,7 @@ module.exports = NodeHelper.create({
         humidity: result.data.current.weather.hu,
       };
 
+      console.log("[MMM-airquality] Sending air quality data back to module:", airQualityData); // Log sending data back
       self.sendSocketNotification("AIR_QUALITY_RESULT", airQualityData);
     });
   },
