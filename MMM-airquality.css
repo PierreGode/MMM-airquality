@@ -1,42 +1,28 @@
-.MMM-airquality .title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 10px;
+.airquality-wrapper {
+  font-size: small;
   text-align: center;
 }
 
-.MMM-airquality .aqi-wrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 18px;
-  margin-bottom: 10px;
+.aqi-wrapper, .pollen-wrapper {
+  margin-top: 10px;
+  padding: 5px;
 }
 
-.MMM-airquality .city {
-  font-size: 22px;
+.aqi-title, .pollen-title {
+  font-size: medium;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.aqi-data, .weather-data, .pollen-row {
+  font-size: small;
+  margin: 3px 0;
+}
+
+.pollen-label {
   font-weight: bold;
 }
 
-.MMM-airquality .aqi {
-  font-size: 26px;
-  font-weight: bold;
-  color: yellow; /* Color the AQI value */
-}
-
-.MMM-airquality .pollutant-wrapper {
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 0;
-  font-size: 16px;
-}
-
-.MMM-airquality .pollutant-label {
-  text-transform: lowercase;
-  font-weight: bold;
-  color: #cccccc;
-}
-
-.MMM-airquality .pollutant-value {
-  color: white;
+.pollen-value {
+  font-weight: normal;
 }
