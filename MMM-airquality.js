@@ -1,120 +1,160 @@
 Module.register("MMM-airquality", {
   defaults: {
-    airQualityApiKey: "", // IQAir API Key
-    pollenApiKey: "",     // Ambee API Key
+    apiKey: "",
     latitude: "",
     longitude: "",
-    updateInterval: 600000, // 10 minutes
-    animationSpeed: 1000,
-    debug: false, // Set to true to log debug information
+    updateInterval: 30 * 60 * 1000, // Update every 30 minutes
+    animationSpeed: 1000, // Animation speed in milliseconds
+    pollutants: ["o3", "pm10", "pm25", "no2", "co", "so2"], // Pollutants to display
+    debug: false,
   },
 
-  start: function () {
-    console.log("[MMM-airquality] Module started");
+  start() {
+    Log.info(`Starting module: ${this.name}`);
+    this.loaded = false;
     this.airQualityData = null;
-    this.pollenData = null;
-    this.loaded = false; // To show loading message
-    this.updateData();
     this.scheduleUpdate();
+    this.updateTimer = null;
+    this.apiBase = `https://api.airvisual.com/v2/nearest_city?lat=${this.config.latitude}&lon=${this.config.longitude}&key=${this.config.apiKey}`;
+    if (this.config.debug) {
+      Log.info("API URL:", this.apiBase);
+    }
+    this.updateAirQuality(this);
   },
 
-  getDom: function () {
-    console.log("[MMM-airquality] Rendering DOM");
-    var wrapper = document.createElement("div");
+  updateAirQuality(self) {
+    self.sendSocketNotification("GET_AIR_QUALITY", {
+      apiKey: self.config.apiKey,
+      latitude: self.config.latitude,
+      longitude: self.config.longitude
+    });
+  },
+
+  getStyles() {
+    return ["MMM-airquality.css"];
+  },
+
+  getHeader() {
+    return this.data.header || "Air Quality Index (AQI)";
+  },
+
+  getDom() {
+    const wrapper = document.createElement("div");
 
     if (!this.loaded) {
-      console.log("[MMM-airquality] Data not loaded yet, showing loading message");
-      wrapper.innerHTML = "Loading air quality and pollen data...";
+      wrapper.innerHTML = "Loading air quality data...";
+      wrapper.className = "dimmed light small";
       return wrapper;
     }
 
-    if (!this.airQualityData || !this.pollenData) {
-      console.log("[MMM-airquality] No air quality or pollen data available");
-      wrapper.innerHTML = "No air quality or pollen data available.";
+    if (!this.airQualityData) {
+      wrapper.innerHTML = "No air quality data available.";
+      wrapper.className = "dimmed light small";
       return wrapper;
     }
 
-    // Display Air Quality Data
-    console.log("[MMM-airquality] Displaying air quality data:", this.airQualityData);
-    var airQualityIndex = document.createElement("div");
-    airQualityIndex.innerHTML = `City: ${this.airQualityData.city}, AQI (US): ${this.airQualityData.aqiUS}, Main Pollutant: ${this.airQualityData.mainUS}`;
-    wrapper.appendChild(airQualityIndex);
+    const cityAQIWrapper = document.createElement("div");
+    cityAQIWrapper.className = "city-aqi";
 
-    var weatherData = document.createElement("div");
-    weatherData.innerHTML = `Temperature: ${this.airQualityData.temperature}°C, Humidity: ${this.airQualityData.humidity}%`;
-    wrapper.appendChild(weatherData);
+    const city = document.createElement("div");
+    city.className = "city";
+    city.innerHTML = this.airQualityData.city;
+    cityAQIWrapper.appendChild(city);
 
-    // Display Pollen Data
-    console.log("[MMM-airquality] Displaying pollen data:", this.pollenData);
-    var pollenData = document.createElement("div");
-    pollenData.innerHTML = `
-      <strong>Pollen Levels:</strong> 
-      Grass: ${this.pollenData.grass}, 
-      Tree: ${this.pollenData.tree}, 
-      Weed: ${this.pollenData.weed}`;
-    wrapper.appendChild(pollenData);
+    const aqi = document.createElement("div");
+    aqi.className = "aqi";
+    aqi.innerHTML = this.airQualityData.aqiUS;
+    cityAQIWrapper.appendChild(aqi);
 
+    wrapper.appendChild(cityAQIWrapper);
+
+    // Weather Data Display
+    const weatherTable = document.createElement("table");
+    weatherTable.className = "small weather-data";
+
+    const weatherParams = {
+      "Temperature": `${this.airQualityData.temperature}°C`,
+      "Humidity": `${this.airQualityData.humidity}%`,
+      "Pressure": `${this.airQualityData.pressure} hPa`,
+      "Wind Speed": `${this.airQualityData.windSpeed} m/s`,
+      "Wind Direction": `${this.airQualityData.windDirection}°`,
+    };
+
+    for (const [label, value] of Object.entries(weatherParams)) {
+      const weatherRow = document.createElement("tr");
+      
+      const labelCell = document.createElement("td");
+      labelCell.innerHTML = label;
+      weatherRow.appendChild(labelCell);
+      
+      const valueCell = document.createElement("td");
+      valueCell.innerHTML = value;
+      weatherRow.appendChild(valueCell);
+      
+      weatherTable.appendChild(weatherRow);
+    }
+
+    wrapper.appendChild(weatherTable);
+
+    // Pollutants Display
+    const pollutantsTable = document.createElement("table");
+    pollutantsTable.className = "small data";
+
+    this.config.pollutants.forEach((pollutant) => {
+      if (this.airQualityData[pollutant]) {
+        const pollutantRow = document.createElement("tr");
+
+        const pollutantName = document.createElement("td");
+        pollutantName.className = `pollutant-label ${pollutant}`;
+        pollutantName.innerHTML = pollutant.toUpperCase();
+        pollutantRow.appendChild(pollutantName);
+
+        const pollutantValue = document.createElement("td");
+        pollutantValue.className = `pollutant-value ${pollutant}`;
+        pollutantValue.innerHTML = this.airQualityData[pollutant];
+        pollutantRow.appendChild(pollutantValue);
+
+        pollutantsTable.appendChild(pollutantRow);
+      }
+    });
+
+    wrapper.appendChild(pollutantsTable);
     return wrapper;
   },
 
-  updateData: function () {
-    console.log("[MMM-airquality] Updating data...");
-    if (!this.config.airQualityApiKey || !this.config.pollenApiKey || !this.config.latitude || !this.config.longitude) {
-      console.error("[MMM-airquality] API Key, Latitude, or Longitude not set in config.js");
-      return;
-    }
+  processAirQuality(result) {
+    this.airQualityData = {
+      city: result.city,
+      aqiUS: result.aqiUS,
+      temperature: result.temperature,
+      pressure: result.pressure,
+      humidity: result.humidity,
+      windSpeed: result.windSpeed,
+      windDirection: result.windDirection
+    };
 
-    if (this.config.debug) {
-      console.log("[MMM-airquality] Fetching air quality and pollen data with debug mode ON");
-    }
-
-    console.log(`[MMM-airquality] Fetching data for lat: ${this.config.latitude}, lon: ${this.config.longitude}`);
-    
-    // Fetch Air Quality Data
-    this.sendSocketNotification("GET_AIR_QUALITY", {
-      apiKey: this.config.airQualityApiKey,
-      latitude: this.config.latitude,
-      longitude: this.config.longitude,
+    this.config.pollutants.forEach((pollutant) => {
+      this.airQualityData[pollutant] = result[pollutant] || "-";
     });
 
-    // Fetch Pollen Data
-    this.sendSocketNotification("GET_POLLEN_DATA", {
-      apiKey: this.config.pollenApiKey,
-      latitude: this.config.latitude,
-      longitude: this.config.longitude,
-    });
+    this.loaded = true;
+    this.updateDom(this.config.animationSpeed);
   },
 
-  scheduleUpdate: function () {
-    console.log("[MMM-airquality] Scheduling next update");
-    var self = this;
-    setTimeout(function () {
-      self.updateData();
-      self.scheduleUpdate(); // Schedule the next update
-    }, this.config.updateInterval);
+  scheduleUpdate(delay = null) {
+    const nextLoad = delay !== null ? delay : this.config.updateInterval;
+
+    const self = this;
+    clearTimeout(this.updateTimer);
+    this.updateTimer = setTimeout(() => {
+      self.updateAirQuality(self);
+    }, nextLoad);
   },
 
-  socketNotificationReceived: function (notification, payload) {
-    console.log(`[MMM-airquality] Socket notification received: ${notification}`);
-    
+  socketNotificationReceived(notification, payload) {
     if (notification === "AIR_QUALITY_RESULT") {
-      if (this.config.debug) {
-        console.log("[MMM-airquality] Air quality data received:", payload);
-      }
-      this.airQualityData = payload;
-    }
-
-    if (notification === "POLLEN_RESULT") {
-      if (this.config.debug) {
-        console.log("[MMM-airquality] Pollen data received:", payload);
-      }
-      this.pollenData = payload;
-    }
-
-    if (this.airQualityData && this.pollenData) {
-      this.loaded = true;
-      console.log("[MMM-airquality] Data loaded, updating DOM");
-      this.updateDom(this.config.animationSpeed);
+      this.processAirQuality(payload.data);
+      this.scheduleUpdate(this.config.updateInterval);
     }
   },
 });
