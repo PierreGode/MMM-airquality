@@ -7,95 +7,55 @@ module.exports = NodeHelper.create({
   },
 
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "GET_AIR_QUALITY") {
-      this.getAirQualityData(payload.apiKey, payload.latitude, payload.longitude);
-    } else if (notification === "GET_POLLEN_DATA") {
-      this.getPollenData(payload.apiKey, payload.latitude, payload.longitude);
+    console.log(`[MMM-airquality] Received socket notification: ${notification}`);
+    if (notification === "GET_DATA") {
+      console.log("[MMM-airquality] Fetching data for weather, pollen, and air quality...");
+      this.getData(payload.apiKey, payload.latitude, payload.longitude);
     }
   },
 
-  // Fetch air quality data from IQAir API
-  getAirQualityData: function (apiKey, latitude, longitude) {
-    var self = this;
-    var url = `https://api.airvisual.com/v2/nearest_city?lat=${latitude}&lon=${longitude}&key=${apiKey}`;
+  getData: function (apiKey, latitude, longitude) {
+    const self = this;
 
-    request(url, function (error, response, body) {
-      if (error || response.statusCode !== 200) {
-        console.error(`[MMM-airquality] Air quality API request failed: ${error || response.statusCode}`);
-        self.sendSocketNotification("AIR_QUALITY_RESULT", { data: null }); // Send null to indicate failure
-        return;
-      }
+    const weatherUrl = `https://api.ambeedata.com/weather/latest/by-lat-lng?lat=${latitude}&lng=${longitude}`;
+    const pollenUrl = `https://api.ambeedata.com/latest/pollen/by-lat-lng?lat=${latitude}&lng=${longitude}`;
+    const airQualityUrl = `https://api.ambeedata.com/latest/by-lat-lng?lat=${latitude}&lng=${longitude}`;
 
-      try {
-        var result = JSON.parse(body);
-        if (result.status !== "success") {
-          console.error("[MMM-airquality] Air quality API error:", result.data.message);
-          self.sendSocketNotification("AIR_QUALITY_RESULT", { data: null });
-          return;
-        }
-
-        const pollution = result.data.current.pollution;
-        const weather = result.data.current.weather;
-
-        var airQualityData = {
-          city: result.data.city,
-          aqiUS: pollution.aqius,
-          co: pollution.co || "-",
-          no2: pollution.no2 || "-",
-          o3: pollution.o3 || "-",
-          pm10: pollution.pm10 || "-",
-          pm25: pollution.pm25 || "-",
-          so2: pollution.so2 || "-",
-          temperature: weather.tp,
-          pressure: weather.pr,
-          humidity: weather.hu,
-          windSpeed: weather.ws,
-          windDirection: weather.wd
-        };
-
-        console.log("[MMM-airquality] Air quality data successfully fetched and processed");
-        self.sendSocketNotification("AIR_QUALITY_RESULT", { data: airQualityData });
-      } catch (e) {
-        console.error("[MMM-airquality] Error parsing air quality API response:", e);
-        self.sendSocketNotification("AIR_QUALITY_RESULT", { data: null });
-      }
-    });
-  },
-
-  // Fetch pollen data from Ambee API
-  getPollenData: function (apiKey, latitude, longitude) {
-    var self = this;
-    var url = `https://api.ambeedata.com/latest/pollen/by-lat-lng?lat=${latitude}&lng=${longitude}`;
-
-    var options = {
-      url: url,
-      headers: {
-        "x-api-key": apiKey,
-        "Content-Type": "application/json"
-      }
+    const headers = {
+      "x-api-key": apiKey,
+      "Content-Type": "application/json"
     };
 
-    request(options, function (error, response, body) {
+    // Fetch Weather Data
+    request({ url: weatherUrl, headers: headers }, function (error, response, body) {
       if (error || response.statusCode !== 200) {
-        console.error(`[MMM-airquality] Pollen API request failed: ${error || response.statusCode}`);
-        self.sendSocketNotification("POLLEN_RESULT", { data: null }); // Send null to indicate failure
-        return;
+        console.error("[MMM-airquality] Error fetching weather data:", error || response.statusCode);
+      } else {
+        const weatherResult = JSON.parse(body).data;
+        self.sendSocketNotification("WEATHER_RESULT", { data: weatherResult });
+        console.log("[MMM-airquality] Weather data fetched");
       }
+    });
 
-      try {
-        var result = JSON.parse(body);
-        const pollenData = result.data[0]; // Adjust based on the structure you provided
+    // Fetch Pollen Data
+    request({ url: pollenUrl, headers: headers }, function (error, response, body) {
+      if (error || response.statusCode !== 200) {
+        console.error("[MMM-airquality] Error fetching pollen data:", error || response.statusCode);
+      } else {
+        const pollenResult = JSON.parse(body).data[0];
+        self.sendSocketNotification("POLLEN_RESULT", { data: pollenResult });
+        console.log("[MMM-airquality] Pollen data fetched");
+      }
+    });
 
-        const pollenInfo = {
-          Risk: pollenData.Risk,
-          Count: pollenData.Count
-        };
-
-        console.log("[MMM-airquality] Pollen data successfully fetched and processed");
-        self.sendSocketNotification("POLLEN_RESULT", { data: pollenInfo });
-      } catch (e) {
-        console.error("[MMM-airquality] Error parsing pollen API response:", e);
-        self.sendSocketNotification("POLLEN_RESULT", { data: null });
+    // Fetch Air Quality Data
+    request({ url: airQualityUrl, headers: headers }, function (error, response, body) {
+      if (error || response.statusCode !== 200) {
+        console.error("[MMM-airquality] Error fetching air quality data:", error || response.statusCode);
+      } else {
+        const airQualityResult = JSON.parse(body).stations[0];
+        self.sendSocketNotification("AIR_QUALITY_RESULT", { data: airQualityResult });
+        console.log("[MMM-airquality] Air quality data fetched");
       }
     });
   }
