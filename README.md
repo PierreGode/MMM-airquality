@@ -24,7 +24,7 @@ Install the dependencies:
 npm install
 
 Configuration
-To use this module, you will need to configure it in your config.js file of MagicMirror. You can obtain an API key from AirVisual https://dashboard.iqair.com/personal/api-keys.
+To use this module, you will need to configure it in your config.js file of MagicMirror. You can obtain an API key from https://auth.ambeedata.com/users/register?redirectUrl=https://api-dashboard.getambee.com.
 
 Here is an example of the configuration:
 ```bash
