@@ -1,38 +1,33 @@
 Module.register("MMM-airquality", {
   defaults: {
-    airQualityApiKey: "", // IQAir API Key
-    pollenApiKey: "",     // Ambee API Key
-    latitude: "",
-    longitude: "",
-    updateInterval: 30 * 60 * 1000, // Update every 30 minutes
+    apiKey: "",           // Ambee API Key
+    latitude: "",         // Latitude of your location
+    longitude: "",        // Longitude of your location
+    updateInterval: 900000, // Update every 15 minutes (max 96 calls/day)
     animationSpeed: 1000, // Animation speed in milliseconds
-    pollutants: ["o3", "pm10", "pm25", "no2", "co", "so2"], // Pollutants to display
-    pollenTypes: ["grass", "tree", "weed"], // Pollen types to display
     debug: false,
   },
 
   start() {
-    Log.info(`Starting module: ${this.name}`);
+    Log.info(`[MMM-airquality] Starting module: ${this.name}`);
     this.loaded = false;
-    this.airQualityData = null;
+    this.weatherData = null;
     this.pollenData = null;
+    this.airQualityData = null;
     this.scheduleUpdate();
     this.updateTimer = null;
-    this.updateAirQuality(this);
-    this.updatePollenData(this);
+
+    if (this.config.debug) {
+      Log.info("[MMM-airquality] Debug mode ON");
+    }
+    Log.info("[MMM-airquality] Initializing data fetch...");
+    this.updateData(this);
   },
 
-  updateAirQuality(self) {
-    self.sendSocketNotification("GET_AIR_QUALITY", {
-      apiKey: self.config.airQualityApiKey,
-      latitude: self.config.latitude,
-      longitude: self.config.longitude
-    });
-  },
-
-  updatePollenData(self) {
-    self.sendSocketNotification("GET_POLLEN_DATA", {
-      apiKey: self.config.pollenApiKey,
+  updateData(self) {
+    Log.info("[MMM-airquality] Sending socket notification to fetch data...");
+    self.sendSocketNotification("GET_DATA", {
+      apiKey: self.config.apiKey,
       latitude: self.config.latitude,
       longitude: self.config.longitude
     });
@@ -43,148 +38,113 @@ Module.register("MMM-airquality", {
   },
 
   getDom() {
+    Log.info("[MMM-airquality] Rendering DOM...");
     const wrapper = document.createElement("div");
-    wrapper.className = "airquality-wrapper";  // Adding a wrapper class for styling
+    wrapper.className = "airquality-wrapper";
 
     if (!this.loaded) {
       wrapper.innerHTML = "Loading data...";
       wrapper.className = "dimmed light small";
+      Log.info("[MMM-airquality] Data not loaded yet, showing loading message");
       return wrapper;
     }
 
-    if (!this.airQualityData && !this.pollenData) {
+    if (!this.weatherData || !this.pollenData || !this.airQualityData) {
       wrapper.innerHTML = "No data available.";
       wrapper.className = "dimmed light small";
+      Log.error("[MMM-airquality] No data available");
       return wrapper;
     }
 
-    // Air Quality Data Display
-    if (this.airQualityData) {
-      const aqiWrapper = document.createElement("div");
-      aqiWrapper.className = "aqi-wrapper";
+    // Weather and Air Quality Section
+    const weatherAQIWrapper = document.createElement("div");
+    weatherAQIWrapper.className = "weather-aqi-wrapper";
 
-      const aqiTitle = document.createElement("div");
-      aqiTitle.className = "aqi-title";
-      aqiTitle.innerHTML = "Air Quality Index (AQI)";
-      aqiWrapper.appendChild(aqiTitle);
+    const location = document.createElement("div");
+    location.className = "location";
+    location.innerHTML = this.weatherData.city;
+    weatherAQIWrapper.appendChild(location);
 
-      const aqiData = document.createElement("div");
-      aqiData.className = "aqi-data";
-      aqiData.innerHTML = `${this.airQualityData.city}: AQI ${this.airQualityData.aqiUS}`;
-      aqiWrapper.appendChild(aqiData);
+    const weatherAQI = document.createElement("div");
+    weatherAQI.className = "weather-aqi";
+    weatherAQI.innerHTML = `Weather Today | AQI ${this.airQualityData.AQI} (${this.airQualityData.aqiInfo.category})`;
+    weatherAQIWrapper.appendChild(weatherAQI);
 
-      const weatherData = document.createElement("div");
-      weatherData.className = "weather-data";
-      weatherData.innerHTML = `Temp: ${this.airQualityData.temperature}°C, Humidity: ${this.airQualityData.humidity}%`;
-      aqiWrapper.appendChild(weatherData);
+    wrapper.appendChild(weatherAQIWrapper);
+    Log.info("[MMM-airquality] Displaying weather and AQI data");
 
-      wrapper.appendChild(aqiWrapper);
-    }
+    // Pollen Data Section
+    const pollenWrapper = document.createElement("div");
+    pollenWrapper.className = "pollen-wrapper";
 
-    // Pollen Data Display
-    if (this.pollenData) {
-      const pollenWrapper = document.createElement("div");
-      pollenWrapper.className = "pollen-wrapper";
+    const pollenTitle = document.createElement("div");
+    pollenTitle.className = "pollen-title";
+    pollenTitle.innerHTML = "Pollen Count & Risk";
+    pollenWrapper.appendChild(pollenTitle);
 
-      const pollenTitle = document.createElement("div");
-      pollenTitle.className = "pollen-title";
-      pollenTitle.innerHTML = "Pollen Levels";
-      pollenWrapper.appendChild(pollenTitle);
+    const pollenSummary = document.createElement("div");
+    pollenSummary.className = "pollen-summary";
+    pollenSummary.innerHTML = `Weed Pollen Count: ${this.pollenData.weed_pollen} (${this.pollenData.Risk.weed_pollen})`;
+    pollenWrapper.appendChild(pollenSummary);
 
-      this.config.pollenTypes.forEach((pollenType) => {
-        const pollenRow = document.createElement("div");
-        pollenRow.className = "pollen-row";
+    const weedDetails = document.createElement("div");
+    weedDetails.className = "pollen-details";
+    weedDetails.innerHTML = `Chenopod: ${this.pollenData.Species.Weed.Chenopod}, Mugwort: ${this.pollenData.Species.Weed.Mugwort}, Nettle: ${this.pollenData.Species.Weed.Nettle}, Ragweed: ${this.pollenData.Species.Weed.Ragweed}`;
+    pollenWrapper.appendChild(weedDetails);
 
-        let label = "";
-        let value = "";
-        switch (pollenType) {
-          case "grass":
-            label = "Grass";
-            value = this.pollenData.grass;
-            break;
-          case "tree":
-            label = "Tree";
-            value = this.pollenData.tree;
-            break;
-          case "weed":
-            label = "Weed";
-            value = this.pollenData.weed;
-            break;
-        }
-
-        const pollenLabel = document.createElement("span");
-        pollenLabel.className = "pollen-label";
-        pollenLabel.innerHTML = `${label}: `;
-
-        const pollenValue = document.createElement("span");
-        pollenValue.className = "pollen-value";
-        pollenValue.innerHTML = value;
-
-        pollenRow.appendChild(pollenLabel);
-        pollenRow.appendChild(pollenValue);
-
-        pollenWrapper.appendChild(pollenRow);
-      });
-
-      wrapper.appendChild(pollenWrapper);
-    }
+    wrapper.appendChild(pollenWrapper);
+    Log.info("[MMM-airquality] Displaying pollen data");
 
     return wrapper;
   },
 
-  processAirQuality(result) {
-    this.airQualityData = result;
+  processWeather(data) {
+    Log.info("[MMM-airquality] Weather data received");
+    this.weatherData = data;
     this.checkIfDataLoaded();
   },
 
-  processPollenData(result) {
-    // Use the correct structure from the Ambee API
-    const pollenRisk = result.Risk;
-    const pollenCount = result.Count;
+  processAirQuality(data) {
+    Log.info("[MMM-airquality] Air quality data received");
+    this.airQualityData = data;
+    this.checkIfDataLoaded();
+  },
 
-    this.pollenData = {
-      grass: `Count: ${pollenCount.grass_pollen}, Risk: ${pollenRisk.grass_pollen}`,
-      tree: `Count: ${pollenCount.tree_pollen}, Risk: ${pollenRisk.tree_pollen}`,
-      weed: `Count: ${pollenCount.weed_pollen}, Risk: ${pollenRisk.weed_pollen}`
-    };
-
+  processPollen(data) {
+    Log.info("[MMM-airquality] Pollen data received");
+    this.pollenData = data;
     this.checkIfDataLoaded();
   },
 
   checkIfDataLoaded() {
-    // At least one of the datasets (air quality or pollen) must be loaded to update the DOM
-    if (this.airQualityData || this.pollenData) {
+    if (this.weatherData && this.airQualityData && this.pollenData) {
+      Log.info("[MMM-airquality] All data loaded, updating DOM");
       this.loaded = true;
       this.updateDom(this.config.animationSpeed);
+    } else {
+      Log.info("[MMM-airquality] Data still loading...");
     }
   },
 
-  // Schedule periodic updates
   scheduleUpdate(delay = null) {
     const nextLoad = delay !== null ? delay : this.config.updateInterval;
 
     const self = this;
     clearTimeout(this.updateTimer);
     this.updateTimer = setTimeout(() => {
-      self.updateAirQuality(self);
-      self.updatePollenData(self);
+      Log.info("[MMM-airquality] Scheduling next data fetch");
+      self.updateData(self);
     }, nextLoad);
   },
 
-  // Process socket notifications for both air quality and pollen
   socketNotificationReceived(notification, payload) {
-    if (notification === "AIR_QUALITY_RESULT") {
-      if (payload.data) {
-        this.processAirQuality(payload.data);
-      } else {
-        console.error("[MMM-airquality] Air quality data failed to load.");
-      }
+    Log.info(`[MMM-airquality] Socket notification received: ${notification}`);
+    if (notification === "WEATHER_RESULT") {
+      this.processWeather(payload.data);
+    } else if (notification === "AIR_QUALITY_RESULT") {
+      this.processAirQuality(payload.data);
     } else if (notification === "POLLEN_RESULT") {
-      if (payload.data) {
-        this.processPollenData(payload.data);
-      } else {
-        console.error("[MMM-airquality] Pollen data failed to load.");
-      }
+      this.processPollen(payload.data);
     }
   }
 });
