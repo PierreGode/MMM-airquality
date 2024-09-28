@@ -30,15 +30,18 @@ Here is an example of the configuration:
 ```bash
 {
   module: "MMM-airquality",
-  position: "top_right",  // Example position
+  position: "bottom_right",  // Choose any position you'd like
   config: {
-    apiKey: "YOUR_AMBEE_API_KEY",  // Your Ambee API key
-    latitude: "59.3293",           // Your latitude
-    longitude: "18.0686",          // Your longitude
-    updateInterval: 900000,        // Optional, default is 15 minutes (max 96 calls/day)
-    animationSpeed: 1000           // Optional, default is 1 second
+    apiKey: "YOUR_AMBEE_API_KEY",    // Replace with your Ambee API Key
+    latitude: "59.3293",             // Latitude of your location (Stockholm in this example)
+    longitude: "18.0686",            // Longitude of your location
+    updateInterval: 900000,          // Update every 15 minutes (900000 milliseconds)
+    animationSpeed: 1000,            // 1 second for DOM animations
+    useCelsius: true,                // true = Celsius, false = Fahrenheit
+    debug: false                     // Set to true to enable logging for debugging
   },
 },
+
 
 ```
 
