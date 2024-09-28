@@ -30,15 +30,23 @@ Here is an example of the configuration:
 ```bash
 {
   module: "MMM-airquality",
-  position: "bottom_right",  // Choose your desired position
+  position: "bottom_right",  // Adjust position to your preference
   config: {
-    apiKey: "YOUR_API_KEY",  // Your AirVisual API key
-    latitude: "59.3293",     // Your latitude
-    longitude: "18.0686",    // Your longitude
-    updateInterval: 600000,  // Update interval in milliseconds (10 minutes by default)
-    animationSpeed: 1000,    // Animation speed for updating the DOM
-    debug: false             // Enable debug mode (optional)
-  }
+    airQualityApiKey: "YOUR_AIR_QUALITY_API_KEY",  // Your valid IQAir API key
+    pollenApiKey: "YOUR_POLLEN_API_KEY",           // Your valid Ambee API key
+    latitude: "59.3293",                           // Latitude for your location (e.g., Stockholm)
+    longitude: "18.0686",                          // Longitude for your location (e.g., Stockholm)
+    updateInterval: 600000,                        // Update interval in milliseconds (default: 10 minutes)
+    animationSpeed: 1000,                          // Animation speed in milliseconds (default: 1 second)
+    
+    // Configure which pollutants to display (select from "o3", "pm10", "pm25", "no2", "co", "so2")
+    pollutants: ["o3", "pm10", "pm25"],            // Customize based on your needs (e.g., Ozone, PM10, PM2.5)
+    
+    // Configure which pollen types to display (select from "grass", "tree", "weed")
+    pollenTypes: ["grass", "tree", "weed"],        // Customize based on your needs (e.g., Grass, Tree, Weed pollen)
+
+    debug: true                                    // Enable debug mode for more logging information
+  },
 },
 ```
 
