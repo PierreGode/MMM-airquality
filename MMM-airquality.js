@@ -44,9 +44,10 @@ Module.register("MMM-airquality", {
 
   getDom() {
     const wrapper = document.createElement("div");
+    wrapper.className = "airquality-wrapper";  // Adding a wrapper class for styling
 
     if (!this.loaded) {
-      wrapper.innerHTML = "Loading air quality and pollen data...";
+      wrapper.innerHTML = "Loading data...";
       wrapper.className = "dimmed light small";
       return wrapper;
     }
@@ -59,92 +60,73 @@ Module.register("MMM-airquality", {
 
     // Air Quality Data Display
     if (this.airQualityData) {
-      const cityAQIWrapper = document.createElement("div");
-      cityAQIWrapper.className = "city-aqi";
+      const aqiWrapper = document.createElement("div");
+      aqiWrapper.className = "aqi-wrapper";
 
-      const city = document.createElement("div");
-      city.className = "city";
-      city.innerHTML = this.airQualityData.city;
-      cityAQIWrapper.appendChild(city);
+      const aqiTitle = document.createElement("div");
+      aqiTitle.className = "aqi-title";
+      aqiTitle.innerHTML = "Air Quality Index (AQI)";
+      aqiWrapper.appendChild(aqiTitle);
 
-      const aqi = document.createElement("div");
-      aqi.className = "aqi";
-      aqi.innerHTML = this.airQualityData.aqiUS;
-      cityAQIWrapper.appendChild(aqi);
+      const aqiData = document.createElement("div");
+      aqiData.className = "aqi-data";
+      aqiData.innerHTML = `${this.airQualityData.city}: AQI ${this.airQualityData.aqiUS}`;
+      aqiWrapper.appendChild(aqiData);
 
-      wrapper.appendChild(cityAQIWrapper);
+      const weatherData = document.createElement("div");
+      weatherData.className = "weather-data";
+      weatherData.innerHTML = `Temp: ${this.airQualityData.temperature}°C, Humidity: ${this.airQualityData.humidity}%`;
+      aqiWrapper.appendChild(weatherData);
 
-      // Weather Data Display
-      const weatherTable = document.createElement("table");
-      weatherTable.className = "small weather-data";
-
-      const weatherParams = {
-        "Temperature": `${this.airQualityData.temperature}°C`,
-        "Humidity": `${this.airQualityData.humidity}%`,
-        "Pressure": `${this.airQualityData.pressure} hPa`,
-        "Wind Speed": `${this.airQualityData.windSpeed} m/s`,
-        "Wind Direction": `${this.airQualityData.windDirection}°`,
-      };
-
-      for (const [label, value] of Object.entries(weatherParams)) {
-        const weatherRow = document.createElement("tr");
-
-        const labelCell = document.createElement("td");
-        labelCell.innerHTML = label;
-        weatherRow.appendChild(labelCell);
-
-        const valueCell = document.createElement("td");
-        valueCell.innerHTML = value;
-        weatherRow.appendChild(valueCell);
-
-        weatherTable.appendChild(weatherRow);
-      }
-
-      wrapper.appendChild(weatherTable);
+      wrapper.appendChild(aqiWrapper);
     }
 
     // Pollen Data Display
     if (this.pollenData) {
-      const pollenTable = document.createElement("table");
-      pollenTable.className = "small pollen-data";
+      const pollenWrapper = document.createElement("div");
+      pollenWrapper.className = "pollen-wrapper";
 
-      const pollenParams = {
-        "Grass Pollen": this.pollenData.grass,
-        "Tree Pollen": this.pollenData.tree,
-        "Weed Pollen": this.pollenData.weed,
-      };
+      const pollenTitle = document.createElement("div");
+      pollenTitle.className = "pollen-title";
+      pollenTitle.innerHTML = "Pollen Levels";
+      pollenWrapper.appendChild(pollenTitle);
 
-      // Filter pollen types based on config
       this.config.pollenTypes.forEach((pollenType) => {
+        const pollenRow = document.createElement("div");
+        pollenRow.className = "pollen-row";
+
         let label = "";
+        let value = "";
         switch (pollenType) {
           case "grass":
-            label = "Grass Pollen";
+            label = "Grass";
+            value = this.pollenData.grass;
             break;
           case "tree":
-            label = "Tree Pollen";
+            label = "Tree";
+            value = this.pollenData.tree;
             break;
           case "weed":
-            label = "Weed Pollen";
+            label = "Weed";
+            value = this.pollenData.weed;
             break;
         }
 
-        if (label) {
-          const pollenRow = document.createElement("tr");
+        const pollenLabel = document.createElement("span");
+        pollenLabel.className = "pollen-label";
+        pollenLabel.innerHTML = `${label}: `;
 
-          const labelCell = document.createElement("td");
-          labelCell.innerHTML = label;
-          pollenRow.appendChild(labelCell);
+        const pollenValue = document.createElement("span");
+        pollenValue.className = "pollen-value";
+        pollenValue.innerHTML = value;
 
-          const valueCell = document.createElement("td");
-          valueCell.innerHTML = pollenParams[label];
-          pollenRow.appendChild(valueCell);
+        pollenRow.appendChild(pollenLabel);
+        pollenRow.appendChild(pollenValue);
 
-          pollenTable.appendChild(pollenRow);
-        }
+        pollenWrapper.appendChild(pollenRow);
       });
 
-      wrapper.appendChild(pollenTable);
+      wrapper.appendChild(pollenWrapper);
     }
 
     return wrapper;
