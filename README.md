@@ -38,9 +38,8 @@ Here is an example of the configuration:
     apiKey: "YOUR_AMBEE_API_KEY",    // Replace with your Ambee API Key
     latitude: "59.3293",             // Latitude of your location (Stockholm in this example)
     longitude: "18.0686",            // Longitude of your location
-    updateInterval: 900000,          // Update every 15 minutes (900000 milliseconds)
+    updateInterval: 3600000,          // Update every hour 100 calls a day limitation from api and we call several endpoints.
     animationSpeed: 1000,            // 1 second for DOM animations
-    useCelsius: true,                // true = Celsius, false = Fahrenheit
     debug: false                     // Set to true to enable logging for debugging
   },
 },
