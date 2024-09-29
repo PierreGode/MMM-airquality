@@ -1,5 +1,8 @@
 # MMM-airquality
 
+![image](https://github.com/user-attachments/assets/e6643cd2-e12c-4edb-bf4e-c126897f93f3)
+
+
 A module for the [MagicMirror²](https://magicmirror.builders) to display air quality information using data from the AirVisual API. This module provides real-time air quality index (AQI) and other weather-related data.
 
 ## Screenshots
