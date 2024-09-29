@@ -1,113 +1,61 @@
 /* MMM-airquality.css */
 
-/* General Styles */
-.city {
-  font-size: 25px;
+.city-aqi {
+  font-size: 24px;
   margin-bottom: 10px;
 }
 
-.current-weather {
-  display: flex;
-  align-items: right;
-  justify-content: right;
-  margin-bottom: 10px;
-}
-
-.weathericon {
-  font-size: 48px;
-  margin-right: 10px;
-}
-
-.temperature {
-  font-size: 48px;
-}
-
-.aqi {
-  font-size: 20px;
-  margin-bottom: 10px;
-}
-
-.weather-details {
-  font-size: 16px;
-  margin-bottom: 15px;
-  line-height: 1.5;
-}
-
-.pollen-wrapper {
-  margin-top: 15px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.pollen-title {
-  font-size: 20px;
-  font-weight: bold;
+.pollen-count-title {
+  font-size: 22px;
   margin-bottom: 5px;
 }
 
-.pollen-summary {
-  font-size: 16px;
-  margin-top: 5px;
+.pollen-counts .pollen-source {
+  font-size: 20px;
+  margin-bottom: 5px;
 }
 
-.pollen-details {
-  font-size: 14px;
-  margin-top: 5px;
-  line-height: 1.4;
+.pollen-species {
+  margin-left: 16px;
 }
 
-.pollen-details strong {
-  display: block;
-  margin-top: 8px;
-  font-weight: bold;
-  color: #ffffff;
+.separator {
+  margin: 15px 0;
+  border: none;
+  border-top: 1px solid #fff;
 }
 
-.pollen-details br {
-  line-height: 1.2;
+.forecast-title {
+  font-size: 18px;
+  margin-bottom: 5px;
 }
 
-
-/* Additional Styling */
-.weather-aqi-wrapper {
-  text-align: center;
-  margin-bottom: 10px;
+.forecast-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.pollen-wrapper {
-  margin-top: 15px;
-  padding: 10px;
-  border-radius: 5px;
+.forecast-table th,
+.forecast-table td {
+  padding: 5px;
+  text-align: left;
 }
 
-.pollen-summary {
-  margin-top: 5px;
+.forecast-table th {
+  border-bottom: 1px solid #fff;
 }
 
-.pollen-details {
-  font-size: 14px;
-  margin-top: 5px;
-  line-height: 1.4;
+.forecast-table tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
-.pollen-details strong {
-  display: block;
-  margin-top: 8px;
-  font-weight: bold;
-  color: #ffffff;
+.forecast-row td {
+  padding: 5px;
 }
 
-.pollen-details br {
-  line-height: 1.2;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .temperature,
-  .weathericon {
-    font-size: 36px;
-  }
-  .city {
-    font-size: 24px;
+@media screen and (max-width: 400px) {
+  .forecast-table th,
+  .forecast-table td {
+    font-size: 12px;
   }
 }
