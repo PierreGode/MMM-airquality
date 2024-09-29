@@ -1,28 +1,113 @@
-.airquality-wrapper {
-  font-size: small;
-  text-align: center;
+/* MMM-airquality.css */
+
+/* General Styles */
+.city {
+  font-size: 25px;
+  margin-bottom: 10px;
 }
 
-.aqi-wrapper, .pollen-wrapper {
-  margin-top: 10px;
-  padding: 5px;
+.current-weather {
+  display: flex;
+  align-items: right;
+  justify-content: right;
+  margin-bottom: 10px;
 }
 
-.aqi-title, .pollen-title {
-  font-size: medium;
+.weathericon {
+  font-size: 48px;
+  margin-right: 10px;
+}
+
+.temperature {
+  font-size: 48px;
+}
+
+.aqi {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.weather-details {
+  font-size: 16px;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.pollen-wrapper {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.pollen-title {
+  font-size: 20px;
   font-weight: bold;
   margin-bottom: 5px;
 }
 
-.aqi-data, .weather-data, .pollen-row {
-  font-size: small;
-  margin: 3px 0;
+.pollen-summary {
+  font-size: 16px;
+  margin-top: 5px;
 }
 
-.pollen-label {
+.pollen-details {
+  font-size: 14px;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.pollen-details strong {
+  display: block;
+  margin-top: 8px;
   font-weight: bold;
+  color: #ffffff;
 }
 
-.pollen-value {
-  font-weight: normal;
+.pollen-details br {
+  line-height: 1.2;
+}
+
+
+/* Additional Styling */
+.weather-aqi-wrapper {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.pollen-wrapper {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.pollen-summary {
+  margin-top: 5px;
+}
+
+.pollen-details {
+  font-size: 14px;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.pollen-details strong {
+  display: block;
+  margin-top: 8px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.pollen-details br {
+  line-height: 1.2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .temperature,
+  .weathericon {
+    font-size: 36px;
+  }
+  .city {
+    font-size: 24px;
+  }
 }
