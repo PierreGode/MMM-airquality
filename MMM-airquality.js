@@ -5,7 +5,7 @@ Module.register("MMM-airquality", {
     longitude: "",        // Longitude of your location
     updateInterval: 900000, // Update every 15 minutes (max 96 calls/day)
     animationSpeed: 1000, // Animation speed in milliseconds
-    useCelsius: true,     // Option to use Celsius (true) or Fahrenheit (false)
+    units: "si",          // Units to be passed to API (e.g., si for Celsius)
     debug: false,
   },
 
@@ -30,106 +30,107 @@ Module.register("MMM-airquality", {
     self.sendSocketNotification("GET_DATA", {
       apiKey: self.config.apiKey,
       latitude: self.config.latitude,
-      longitude: self.config.longitude
+      longitude: self.config.longitude,
+      units: self.config.units
     });
   },
 
   getStyles() {
-    return ["MMM-airquality.css"];
+    return ["MMM-airquality.css", "weather-icons.css"];
   },
 
   getDom() {
-    Log.info("[MMM-airquality] Rendering DOM...");
     const wrapper = document.createElement("div");
-    wrapper.className = "airquality-wrapper";
 
     if (!this.loaded) {
       wrapper.innerHTML = "Loading data...";
       wrapper.className = "dimmed light small";
-      Log.info("[MMM-airquality] Data not loaded yet, showing loading message");
       return wrapper;
     }
 
     if (!this.weatherData || !this.pollenData || !this.airQualityData) {
       wrapper.innerHTML = "No data available.";
       wrapper.className = "dimmed light small";
-      Log.error("[MMM-airquality] No data available");
       return wrapper;
     }
 
-    // City and AQI Section
-    const weatherAQIWrapper = document.createElement("div");
-    weatherAQIWrapper.className = "weather-aqi-wrapper";
+    const mainWrapper = document.createElement("div");
 
-    const location = document.createElement("div");
-    location.className = "location";
-    location.innerHTML = this.weatherData.city || "Unknown Location"; // Added a fallback value
-    weatherAQIWrapper.appendChild(location);
+    // City
+    const city = document.createElement("div");
+    city.className = "city bright large light";
+    city.innerHTML = this.weatherData.city || "Unknown Location";
+    mainWrapper.appendChild(city);
 
-    const weatherAQI = document.createElement("div");
-    weatherAQI.className = "weather-aqi";
+    // Current Weather Wrapper
+    const currentWeatherWrapper = document.createElement("div");
+    currentWeatherWrapper.className = "current-weather";
 
-    // Convert temperature from Fahrenheit to Celsius if needed
-    let temperature = this.weatherData.temperature;
-    if (this.config.useCelsius) {
-      temperature = (temperature - 32) * 5 / 9; // Convert from Fahrenheit to Celsius
-      temperature = `${temperature.toFixed(1)}°C`;
-    } else {
-      temperature = `${temperature.toFixed(1)}°F`;
-    }
+    // Weather Icon
+    const iconElement = document.createElement("span");
+    iconElement.className = `wi weathericon wi-${this.weatherData.icon}`;
+    currentWeatherWrapper.appendChild(iconElement);
 
-    const weatherSummary = this.weatherData.summary || "Weather data unavailable";
-    weatherAQI.innerHTML = `Temp: ${temperature} | AQI ${this.airQualityData.AQI} (${this.airQualityData.aqiInfo.category})`;
-    weatherAQIWrapper.appendChild(weatherAQI);
+    // Temperature
+    const temperature = document.createElement("div");
+    temperature.className = "temperature bright xlarge light";
+    temperature.innerHTML = `${this.weatherData.temperature}°`;
+    currentWeatherWrapper.appendChild(temperature);
 
-    wrapper.appendChild(weatherAQIWrapper);
-    Log.info("[MMM-airquality] Displaying weather and AQI data");
+    mainWrapper.appendChild(currentWeatherWrapper);
 
-    // Weather Details Section
+    // AQI
+    const aqi = document.createElement("div");
+    aqi.className = "aqi bright small light";
+    aqi.innerHTML = `AQI: ${this.airQualityData.AQI} (${this.airQualityData.aqiInfo.category})`;
+    mainWrapper.appendChild(aqi);
+
+    // Weather Details
     const weatherDetails = document.createElement("div");
-    weatherDetails.className = "weather-details";
+    weatherDetails.className = "weather-details xsmall dimmed";
     weatherDetails.innerHTML = `
       Humidity: ${this.weatherData.humidity}%<br>
       Pressure: ${this.weatherData.pressure} hPa<br>
-      Precipitation: ${this.weatherData.precipIntensity} mm<br>
-      Wind Speed: ${this.weatherData.windSpeed} m/s<br>
-      Wind Gust: ${this.weatherData.windGust} m/s<br>
-      Visibility: ${this.weatherData.visibility} km<br>
-      Ozone: ${this.weatherData.ozone} DU<br>
-      UV Index: ${this.weatherData.uvIndex}
+      Wind: ${this.weatherData.windSpeed} m/s<br>
+      Visibility: ${this.weatherData.visibility} km
     `;
-    wrapper.appendChild(weatherDetails);
+    mainWrapper.appendChild(weatherDetails);
 
-    // Pollen Data Section
+    // Pollen Data
     const pollenWrapper = document.createElement("div");
-    pollenWrapper.className = "pollen-wrapper";
+    pollenWrapper.className = "pollen-wrapper small bright";
 
     const pollenTitle = document.createElement("div");
-    pollenTitle.className = "pollen-title";
+    pollenTitle.className = "pollen-title medium bright";
     pollenTitle.innerHTML = "Pollen Count & Risk";
     pollenWrapper.appendChild(pollenTitle);
 
     const pollenSummary = document.createElement("div");
-    pollenSummary.className = "pollen-summary";
-    pollenSummary.innerHTML = `Weed Pollen Count: ${this.pollenData.Count.weed_pollen} (${this.pollenData.Risk.weed_pollen})`;
+    pollenSummary.className = "pollen-summary small bright";
+    pollenSummary.innerHTML = `
+      Weed Pollen Count: ${this.pollenData.Count.weed_pollen} (${this.pollenData.Risk.weed_pollen})
+    `;
     pollenWrapper.appendChild(pollenSummary);
 
-    const weedDetails = document.createElement("div");
-    weedDetails.className = "pollen-details";
-    weedDetails.innerHTML = `Chenopod: ${this.pollenData.Species.Weed.Chenopod}, Mugwort: ${this.pollenData.Species.Weed.Mugwort}, Nettle: ${this.pollenData.Species.Weed.Nettle}, Ragweed: ${this.pollenData.Species.Weed.Ragweed}`;
-    pollenWrapper.appendChild(weedDetails);
+    mainWrapper.appendChild(pollenWrapper);
 
-    wrapper.appendChild(pollenWrapper);
-    Log.info("[MMM-airquality] Displaying pollen data");
-
+    wrapper.appendChild(mainWrapper);
     return wrapper;
   },
 
   processWeather(data) {
     Log.info("[MMM-airquality] Weather data received");
+
+    // Convert temperature to Celsius if units are "si"
+    let temperature = data.temperature;
+    if (this.config.units === "si" && temperature !== null) {
+      temperature = ((temperature - 32) / 1.8).toFixed(1);
+    }
+
+    // Map the data to weatherData
     this.weatherData = {
-      city: data.city || "Unknown", // Ensuring city data is fetched
-      temperature: data.temperature || null,
+      city: "Stockholm",  // Hardcoding city as it's not provided in the API response
+      temperature: temperature || null,
       humidity: data.humidity || null,
       pressure: data.pressure || null,
       precipIntensity: data.precipIntensity || null,
@@ -138,8 +139,10 @@ Module.register("MMM-airquality", {
       visibility: data.visibility || null,
       ozone: data.ozone || null,
       uvIndex: data.uvIndex || null,
-      summary: data.summary || "No summary"
+      summary: data.summary || "No summary",
+      icon: data.icon || "na"
     };
+
     this.checkIfDataLoaded();
   },
 
