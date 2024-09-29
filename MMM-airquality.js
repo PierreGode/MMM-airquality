@@ -1,3 +1,5 @@
+/* MMM-airquality.js */
+
 Module.register("MMM-airquality", {
   defaults: {
     apiKey: "",           // Ambee API Key
@@ -12,9 +14,9 @@ Module.register("MMM-airquality", {
   start() {
     Log.info(`[MMM-airquality] Starting module: ${this.name}`);
     this.loaded = false;
-    this.weatherData = null;
     this.pollenData = null;
     this.airQualityData = null;
+    this.pollenForecastData = null; // Initialize pollenForecastData
     this.scheduleUpdate();
     this.updateTimer = null;
 
@@ -36,7 +38,7 @@ Module.register("MMM-airquality", {
   },
 
   getStyles() {
-    return ["MMM-airquality.css", "weather-icons.css"];
+    return ["MMM-airquality.css"];
   },
 
   getDom() {
@@ -48,7 +50,7 @@ Module.register("MMM-airquality", {
       return wrapper;
     }
 
-    if (!this.weatherData || !this.pollenData || !this.airQualityData) {
+    if (!this.pollenData || !this.airQualityData || !this.pollenForecastData) {
       wrapper.innerHTML = "No data available.";
       wrapper.className = "dimmed light small";
       return wrapper;
@@ -56,94 +58,234 @@ Module.register("MMM-airquality", {
 
     const mainWrapper = document.createElement("div");
 
-    // City
-    const city = document.createElement("div");
-    city.className = "city bright large light";
-    city.innerHTML = this.weatherData.city || "Unknown Location";
-    mainWrapper.appendChild(city);
+    // Row 1: City and AQI
+    const cityAqi = document.createElement("div");
+    cityAqi.className = "city-aqi bright medium light";
+    const city = this.airQualityData.city || "Unknown Location";
+    const aqi = this.airQualityData.AQI || "N/A";
+    const aqiCategory = (this.airQualityData.aqiInfo && this.airQualityData.aqiInfo.category) || "N/A";
+    cityAqi.innerHTML = `${city} | AQI ${aqi} (${aqiCategory})`;
+    mainWrapper.appendChild(cityAqi);
 
-    // Current Weather Wrapper
-    const currentWeatherWrapper = document.createElement("div");
-    currentWeatherWrapper.className = "current-weather";
+    // Row 2: "Pollen count"
+    const pollenCountTitle = document.createElement("div");
+    pollenCountTitle.className = "pollen-count-title small bright";
+    pollenCountTitle.innerHTML = "Pollen count";
+    mainWrapper.appendChild(pollenCountTitle);
 
-    // Weather Icon
-    const iconElement = document.createElement("span");
-    iconElement.className = `wi weathericon wi-${this.weatherData.icon}`;
-    currentWeatherWrapper.appendChild(iconElement);
+    // Row 3 & 4: Today's pollen counts and species
+    const pollenCounts = document.createElement("div");
+    pollenCounts.className = "pollen-counts small bright";
 
-    // Temperature
-    const temperature = document.createElement("div");
-    temperature.className = "temperature bright xlarge light";
-    temperature.innerHTML = `${this.weatherData.temperature}°`;
-    currentWeatherWrapper.appendChild(temperature);
+    const counts = this.pollenData.Count;
+    const risks = this.pollenData.Risk;
+    const species = this.pollenData.Species;
 
-    mainWrapper.appendChild(currentWeatherWrapper);
+    const sources = ["grass_pollen", "tree_pollen", "weed_pollen"];
+    const sourceToSpeciesMap = {
+      'grass_pollen': 'Grass',
+      'tree_pollen': 'Tree',
+      'weed_pollen': 'Weed'
+    };
 
-    // AQI
-    const aqi = document.createElement("div");
-    aqi.className = "aqi bright small light";
-    aqi.innerHTML = `AQI: ${this.airQualityData.AQI} (${this.airQualityData.aqiInfo.category})`;
-    mainWrapper.appendChild(aqi);
+    sources.forEach(source => {
+      if (counts[source] && counts[source] > 0) {
+        const sourceDiv = document.createElement("div");
+        sourceDiv.className = "pollen-source";
 
-    // Weather Details
-    const weatherDetails = document.createElement("div");
-    weatherDetails.className = "weather-details xsmall dimmed";
-    weatherDetails.innerHTML = `
-      Humidity: ${this.weatherData.humidity}%<br>
-      Pressure: ${this.weatherData.pressure} hPa<br>
-      Wind: ${this.weatherData.windSpeed} m/s<br>
-      Visibility: ${this.weatherData.visibility} km
-    `;
-    mainWrapper.appendChild(weatherDetails);
+        // Source name (capitalize)
+        const sourceName = source.replace('_pollen', '').replace(/\b\w/g, l => l.toUpperCase());
 
-    // Pollen Data
-    const pollenWrapper = document.createElement("div");
-    pollenWrapper.className = "pollen-wrapper small bright";
+        sourceDiv.innerHTML = `${sourceName}: ${counts[source]} (${risks[source]})`;
+        pollenCounts.appendChild(sourceDiv);
 
-    const pollenTitle = document.createElement("div");
-    pollenTitle.className = "pollen-title medium bright";
-    pollenTitle.innerHTML = "Pollen Count & Risk";
-    pollenWrapper.appendChild(pollenTitle);
+        // Species under this source
+        const speciesKey = sourceToSpeciesMap[source];
+        const speciesList = species[speciesKey];
+        if (speciesList) {
+          const speciesDiv = document.createElement("div");
+          speciesDiv.className = "pollen-species xsmall dimmed";
 
-    const pollenSummary = document.createElement("div");
-    pollenSummary.className = "pollen-summary small bright";
-    pollenSummary.innerHTML = `
-      Weed Pollen Count: ${this.pollenData.Count.weed_pollen} (${this.pollenData.Risk.weed_pollen})
-    `;
-    pollenWrapper.appendChild(pollenSummary);
+          let speciesHTML = '';
+          for (let sp in speciesList) {
+            if (speciesList[sp] > 0) {
+              speciesHTML += `${sp}: ${speciesList[sp]}<br>`;
+            }
+          }
+          speciesDiv.innerHTML = speciesHTML;
+          pollenCounts.appendChild(speciesDiv);
+        }
+      }
+    });
 
-    mainWrapper.appendChild(pollenWrapper);
+    mainWrapper.appendChild(pollenCounts);
+
+    // Separator line
+    const separator = document.createElement("hr");
+    separator.className = "separator";
+    mainWrapper.appendChild(separator);
+
+    // Pollen Forecast
+    const forecastTitle = document.createElement("div");
+    forecastTitle.className = "forecast-title small bright";
+    forecastTitle.innerHTML = "Pollen Forecast";
+    mainWrapper.appendChild(forecastTitle);
+
+    // Display forecast in a table
+    const forecastTable = document.createElement("table");
+    forecastTable.className = "forecast-table small";
+
+    // Table Header
+    const headerRow = document.createElement("tr");
+    const dayHeader = document.createElement("th");
+    dayHeader.innerHTML = "Day";
+    const pollenTypeHeader = document.createElement("th");
+    pollenTypeHeader.innerHTML = "Pollen Type";
+    const riskHeader = document.createElement("th");
+    riskHeader.innerHTML = "Risk Level";
+    const countHeader = document.createElement("th");
+    countHeader.innerHTML = "Count";
+
+    headerRow.appendChild(dayHeader);
+    headerRow.appendChild(pollenTypeHeader);
+    headerRow.appendChild(riskHeader);
+    headerRow.appendChild(countHeader);
+    forecastTable.appendChild(headerRow);
+
+    // Process forecast data
+    const forecastData = this.processForecastData(this.pollenForecastData);
+
+    forecastData.forEach(dayData => {
+      const row = document.createElement("tr");
+      row.className = "forecast-row";
+
+      // Weekday
+      const dayCell = document.createElement("td");
+      dayCell.innerHTML = dayData.weekday;
+      row.appendChild(dayCell);
+
+      // Since there may be multiple pollen types with the highest count, we'll only display the first one
+      const highestPollenType = dayData.highestPollenTypes[0];
+
+      // Pollen Type
+      const pollenTypeCell = document.createElement("td");
+      pollenTypeCell.innerHTML = highestPollenType.source;
+      row.appendChild(pollenTypeCell);
+
+      // Risk Level
+      const riskCell = document.createElement("td");
+      riskCell.innerHTML = highestPollenType.risk;
+      row.appendChild(riskCell);
+
+      // Count
+      const countCell = document.createElement("td");
+      countCell.innerHTML = highestPollenType.count;
+      row.appendChild(countCell);
+
+      forecastTable.appendChild(row);
+    });
+
+    mainWrapper.appendChild(forecastTable);
 
     wrapper.appendChild(mainWrapper);
     return wrapper;
   },
 
-  processWeather(data) {
-    Log.info("[MMM-airquality] Weather data received");
+  processForecastData(forecastData) {
+    const dayMap = {};
 
-    // Convert temperature to Celsius if units are "si"
-    let temperature = data.temperature;
-    if (this.config.units === "si" && temperature !== null) {
-      temperature = ((temperature - 32) / 1.8).toFixed(1);
-    }
+    forecastData.forEach(entry => {
+      const time = entry.time;
+      const date = new Date(time * 1000);
+      const day = date.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
-    // Map the data to weatherData
-    this.weatherData = {
-      city: "Stockholm",  // Hardcoding city as it's not provided in the API response
-      temperature: temperature || null,
-      humidity: data.humidity || null,
-      pressure: data.pressure || null,
-      precipIntensity: data.precipIntensity || null,
-      windSpeed: data.windSpeed || null,
-      windGust: data.windGust || null,
-      visibility: data.visibility || null,
-      ozone: data.ozone || null,
-      uvIndex: data.uvIndex || null,
-      summary: data.summary || "No summary",
-      icon: data.icon || "na"
-    };
+      if (!dayMap[day]) {
+        dayMap[day] = {
+          date: date,
+          countsList: {
+            grass_pollen: [],
+            tree_pollen: [],
+            weed_pollen: []
+          },
+          risksList: {
+            grass_pollen: [],
+            tree_pollen: [],
+            weed_pollen: []
+          }
+        };
+      }
 
-    this.checkIfDataLoaded();
+      // Collect counts
+      dayMap[day].countsList.grass_pollen.push(entry.Count.grass_pollen || 0);
+      dayMap[day].countsList.tree_pollen.push(entry.Count.tree_pollen || 0);
+      dayMap[day].countsList.weed_pollen.push(entry.Count.weed_pollen || 0);
+
+      // Collect risk levels
+      dayMap[day].risksList.grass_pollen.push(entry.Risk.grass_pollen);
+      dayMap[day].risksList.tree_pollen.push(entry.Risk.tree_pollen);
+      dayMap[day].risksList.weed_pollen.push(entry.Risk.weed_pollen);
+    });
+
+    const dayArray = Object.values(dayMap).sort((a, b) => a.date - b.date);
+
+    const forecastDataProcessed = dayArray.map(dayData => {
+      const countsList = dayData.countsList;
+      const risksList = dayData.risksList;
+
+      // Calculate average counts
+      const counts = {
+        grass_pollen: this.average(countsList.grass_pollen),
+        tree_pollen: this.average(countsList.tree_pollen),
+        weed_pollen: this.average(countsList.weed_pollen)
+      };
+
+      // Determine the highest risk level per pollen type for the day
+      const riskLevelsOrder = ["Low", "Moderate", "High", "Very High"];
+      const risks = {
+        grass_pollen: this.highestRisk(risksList.grass_pollen, riskLevelsOrder),
+        tree_pollen: this.highestRisk(risksList.tree_pollen, riskLevelsOrder),
+        weed_pollen: this.highestRisk(risksList.weed_pollen, riskLevelsOrder)
+      };
+
+      // Find the pollen type(s) with the highest average count
+      const maxCount = Math.max(counts.grass_pollen, counts.tree_pollen, counts.weed_pollen);
+
+      const highestPollenTypes = [];
+      ["grass_pollen", "tree_pollen", "weed_pollen"].forEach(source => {
+        if (counts[source] === maxCount && counts[source] > 0) {
+          highestPollenTypes.push({
+            source: source.replace('_pollen', '').replace(/\b\w/g, l => l.toUpperCase()),
+            risk: risks[source],
+            count: Math.round(counts[source])
+          });
+        }
+      });
+
+      return {
+        weekday: dayData.date.toLocaleDateString('en-US', { weekday: 'long' }),
+        highestPollenTypes: highestPollenTypes
+      };
+    });
+
+    return forecastDataProcessed;
+  },
+
+  // Helper function to calculate average
+  average(arr) {
+    if (arr.length === 0) return 0;
+    const sum = arr.reduce((a, b) => a + b, 0);
+    return sum / arr.length;
+  },
+
+  // Helper function to determine the highest risk level
+  highestRisk(risksArray, riskLevelsOrder) {
+    let highestRisk = "Low";
+    risksArray.forEach(risk => {
+      if (riskLevelsOrder.indexOf(risk) > riskLevelsOrder.indexOf(highestRisk)) {
+        highestRisk = risk;
+      }
+    });
+    return highestRisk;
   },
 
   processAirQuality(data) {
@@ -154,12 +296,26 @@ Module.register("MMM-airquality", {
 
   processPollen(data) {
     Log.info("[MMM-airquality] Pollen data received");
-    this.pollenData = data;
+    Log.debug("[MMM-airquality] Pollen data payload:", data);
+
+    // Assuming data.data is an array, take the first element
+    if (data.data && data.data.length > 0) {
+      this.pollenData = data.data[0];
+    } else {
+      Log.error("[MMM-airquality] Pollen data is empty");
+      this.pollenData = {};
+    }
+    this.checkIfDataLoaded();
+  },
+
+  processPollenForecast(data) {
+    Log.info("[MMM-airquality] Pollen forecast data received");
+    this.pollenForecastData = data;
     this.checkIfDataLoaded();
   },
 
   checkIfDataLoaded() {
-    if (this.weatherData && this.airQualityData && this.pollenData) {
+    if (this.airQualityData && this.pollenData && this.pollenForecastData) {
       Log.info("[MMM-airquality] All data loaded, updating DOM");
       this.loaded = true;
       this.updateDom(this.config.animationSpeed);
@@ -181,12 +337,13 @@ Module.register("MMM-airquality", {
 
   socketNotificationReceived(notification, payload) {
     Log.info(`[MMM-airquality] Socket notification received: ${notification}`);
-    if (notification === "WEATHER_RESULT") {
-      this.processWeather(payload.data);
-    } else if (notification === "AIR_QUALITY_RESULT") {
+    Log.debug(`[MMM-airquality] Payload for ${notification}:`, payload);
+    if (notification === "AIR_QUALITY_RESULT") {
       this.processAirQuality(payload.data);
     } else if (notification === "POLLEN_RESULT") {
       this.processPollen(payload.data);
+    } else if (notification === "POLLEN_FORECAST_RESULT") {
+      this.processPollenForecast(payload.data);
     }
   }
 });
