@@ -1,5 +1,3 @@
-/* node_helper.js */
-
 const NodeHelper = require("node_helper");
 const request = require("request");
 
