@@ -1,5 +1,3 @@
-/* MMM-airquality.js */
-
 Module.register("MMM-airquality", {
   defaults: {
     apiKey: "",           // Ambee API Key
@@ -8,6 +6,7 @@ Module.register("MMM-airquality", {
     updateInterval: 900000, // Update every 15 minutes (max 96 calls/day)
     animationSpeed: 1000, // Animation speed in milliseconds
     units: "si",          // Units to be passed to API (e.g., si for Celsius)
+    showPollenForecast: true, // New option to control pollen forecast display
     debug: false,
   },
 
@@ -120,72 +119,75 @@ Module.register("MMM-airquality", {
 
     mainWrapper.appendChild(pollenCounts);
 
-    // Separator line
-    const separator = document.createElement("hr");
-    separator.className = "separator";
-    mainWrapper.appendChild(separator);
+    // Conditionally show the pollen forecast
+    if (this.config.showPollenForecast) {
+      // Separator line
+      const separator = document.createElement("hr");
+      separator.className = "separator";
+      mainWrapper.appendChild(separator);
 
-    // Pollen Forecast
-    const forecastTitle = document.createElement("div");
-    forecastTitle.className = "forecast-title small bright";
-    forecastTitle.innerHTML = "Pollen Forecast";
-    mainWrapper.appendChild(forecastTitle);
+      // Pollen Forecast
+      const forecastTitle = document.createElement("div");
+      forecastTitle.className = "forecast-title small bright";
+      forecastTitle.innerHTML = "Pollen Forecast";
+      mainWrapper.appendChild(forecastTitle);
 
-    // Display forecast in a table
-    const forecastTable = document.createElement("table");
-    forecastTable.className = "forecast-table small";
+      // Display forecast in a table
+      const forecastTable = document.createElement("table");
+      forecastTable.className = "forecast-table small";
 
-    // Table Header
-    const headerRow = document.createElement("tr");
-    const dayHeader = document.createElement("th");
-    dayHeader.innerHTML = "Day";
-    const pollenTypeHeader = document.createElement("th");
-    pollenTypeHeader.innerHTML = "Pollen Type";
-    const riskHeader = document.createElement("th");
-    riskHeader.innerHTML = "Risk Level";
-    const countHeader = document.createElement("th");
-    countHeader.innerHTML = "Count";
+      // Table Header
+      const headerRow = document.createElement("tr");
+      const dayHeader = document.createElement("th");
+      dayHeader.innerHTML = "Day";
+      const pollenTypeHeader = document.createElement("th");
+      pollenTypeHeader.innerHTML = "Pollen Type";
+      const riskHeader = document.createElement("th");
+      riskHeader.innerHTML = "Risk Level";
+      const countHeader = document.createElement("th");
+      countHeader.innerHTML = "Count";
 
-    headerRow.appendChild(dayHeader);
-    headerRow.appendChild(pollenTypeHeader);
-    headerRow.appendChild(riskHeader);
-    headerRow.appendChild(countHeader);
-    forecastTable.appendChild(headerRow);
+      headerRow.appendChild(dayHeader);
+      headerRow.appendChild(pollenTypeHeader);
+      headerRow.appendChild(riskHeader);
+      headerRow.appendChild(countHeader);
+      forecastTable.appendChild(headerRow);
 
-    // Process forecast data
-    const forecastData = this.processForecastData(this.pollenForecastData);
+      // Process forecast data
+      const forecastData = this.processForecastData(this.pollenForecastData);
 
-    forecastData.forEach(dayData => {
-      const row = document.createElement("tr");
-      row.className = "forecast-row";
+      forecastData.forEach(dayData => {
+        const row = document.createElement("tr");
+        row.className = "forecast-row";
 
-      // Weekday
-      const dayCell = document.createElement("td");
-      dayCell.innerHTML = dayData.weekday;
-      row.appendChild(dayCell);
+        // Weekday
+        const dayCell = document.createElement("td");
+        dayCell.innerHTML = dayData.weekday;
+        row.appendChild(dayCell);
 
-      // Since there may be multiple pollen types with the highest count, we'll only display the first one
-      const highestPollenType = dayData.highestPollenTypes[0];
+        // Since there may be multiple pollen types with the highest count, we'll only display the first one
+        const highestPollenType = dayData.highestPollenTypes[0];
 
-      // Pollen Type
-      const pollenTypeCell = document.createElement("td");
-      pollenTypeCell.innerHTML = highestPollenType.source;
-      row.appendChild(pollenTypeCell);
+        // Pollen Type
+        const pollenTypeCell = document.createElement("td");
+        pollenTypeCell.innerHTML = highestPollenType.source;
+        row.appendChild(pollenTypeCell);
 
-      // Risk Level
-      const riskCell = document.createElement("td");
-      riskCell.innerHTML = highestPollenType.risk;
-      row.appendChild(riskCell);
+        // Risk Level
+        const riskCell = document.createElement("td");
+        riskCell.innerHTML = highestPollenType.risk;
+        row.appendChild(riskCell);
 
-      // Count
-      const countCell = document.createElement("td");
-      countCell.innerHTML = highestPollenType.count;
-      row.appendChild(countCell);
+        // Count
+        const countCell = document.createElement("td");
+        countCell.innerHTML = highestPollenType.count;
+        row.appendChild(countCell);
 
-      forecastTable.appendChild(row);
-    });
+        forecastTable.appendChild(row);
+      });
 
-    mainWrapper.appendChild(forecastTable);
+      mainWrapper.appendChild(forecastTable);
+    }
 
     wrapper.appendChild(mainWrapper);
     return wrapper;
