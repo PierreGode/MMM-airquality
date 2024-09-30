@@ -40,6 +40,7 @@ Here is an example of the configuration:
     longitude: "18.0686",            // Longitude of your location
     updateInterval: 3600000,          // Update every hour 100 calls a day limitation from api and we call several endpoints.
     animationSpeed: 1000,            // 1 second for DOM animations
+    showPollenForecast: true, // New option to control pollen forecast display
     debug: false                     // Set to true to enable logging for debugging
   },
 },
