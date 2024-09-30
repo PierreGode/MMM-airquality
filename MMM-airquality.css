@@ -16,11 +16,11 @@
 }
 
 .pollen-species {
-  margin-left: 16px;
+  margin-left: 10px;
 }
 
 .separator {
-  margin: 15px 0;
+  margin: 10px 0;
   border: none;
   border-top: 1px solid #fff;
 }
@@ -31,7 +31,7 @@
 }
 
 .forecast-table {
-  width: 100%;
+  width: 70%;
   border-collapse: collapse;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .forecast-table tr:nth-child(even) {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0);
 }
 
 .forecast-row td {
