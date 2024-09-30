@@ -1,5 +1,7 @@
 # MMM-airquality
 
+![image](https://github.com/user-attachments/assets/d81e179a-db93-4074-b4b1-d4b8db255f29)
+
 ![image](https://github.com/user-attachments/assets/e6643cd2-e12c-4edb-bf4e-c126897f93f3)
 
 
