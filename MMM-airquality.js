@@ -160,7 +160,7 @@ Module.register("MMM-airquality", {
         const row = document.createElement("tr");
         row.className = "forecast-row";
 
-        // Weekday
+        // Weekday (Today, Tomorrow, Weekdays)
         const dayCell = document.createElement("td");
         dayCell.innerHTML = dayData.weekday;
         row.appendChild(dayCell);
@@ -199,7 +199,7 @@ Module.register("MMM-airquality", {
     forecastData.forEach(entry => {
       const time = entry.time;
       const date = new Date(time * 1000);
-      const day = date.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' });
+      const day = date.toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' }); // Use default system locale
 
       if (!dayMap[day]) {
         dayMap[day] = {
@@ -230,7 +230,8 @@ Module.register("MMM-airquality", {
 
     const dayArray = Object.values(dayMap).sort((a, b) => a.date - b.date);
 
-    const forecastDataProcessed = dayArray.map(dayData => {
+    // Add logic to ensure first day is Today, second day is Tomorrow, and the rest follow as weekdays.
+    const forecastDataProcessed = dayArray.map((dayData, index) => {
       const countsList = dayData.countsList;
       const risksList = dayData.risksList;
 
@@ -263,8 +264,22 @@ Module.register("MMM-airquality", {
         }
       });
 
+      // Label the days as "Today", "Tomorrow", and then regular weekdays
+      let weekday;
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      if (dayData.date.toDateString() === today.toDateString()) {
+        weekday = "Today";
+      } else if (dayData.date.toDateString() === tomorrow.toDateString()) {
+        weekday = "Tomorrow";
+      } else {
+        weekday = dayData.date.toLocaleDateString(undefined, { weekday: 'long' }); // Use system locale for the weekday name
+      }
+
       return {
-        weekday: dayData.date.toLocaleDateString('en-US', { weekday: 'long' }),
+        weekday: weekday,
         highestPollenTypes: highestPollenTypes
       };
     });
@@ -321,6 +336,8 @@ Module.register("MMM-airquality", {
       Log.info("[MMM-airquality] All data loaded, updating DOM");
       this.loaded = true;
       this.updateDom(this.config.animationSpeed);
+      // Schedule the next update after the data is fully loaded
+      this.scheduleUpdate();
     } else {
       Log.info("[MMM-airquality] Data still loading...");
     }
