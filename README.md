@@ -59,5 +59,5 @@ Here is an example of the configuration:
 | `apiKey` | **Required**: Your AirVisual API key. Get it from here. | 
 | `latitude` | **Required**: Your location's latitude. Example: `"59.3293"` for Stockholm. | 
 | `longitude` | **Required**: Your location's longitude. Example: `"18.0686"` for Stockholm. |
-| `showPM10` | Show or Hide  PM10 data. |
-| `showPM25` | Show or Hide  PM10 data. |
+| `showPM10` | Show or Hide ( true : false )  PM10 data. |
+| `showPM25` | Show or Hide ( true : false ) PM10 data. |
