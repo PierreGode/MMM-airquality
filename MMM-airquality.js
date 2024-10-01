@@ -77,18 +77,18 @@ Module.register("MMM-airquality", {
 
     // Check if PM10 data is available before showing it
     if (this.config.showPM10 && this.airQualityData.PM10 !== undefined && this.airQualityData.PM10 !== null) {
-      const pm10 = `PM10: ${this.airQualityData.PM10}`;
+      const pm10 = `PM10:&nbsp;&nbsp;${this.airQualityData.PM10}`;
       pmData += `${pm10}`;
     } else if (this.config.showPM10) {
-      pmData += "PM10: N/A";
+      pmData += "PM10:&nbsp;&nbsp;N/A";
     }
 
     // Check if PM2.5 data is available before showing it
     if (this.config.showPM25 && this.airQualityData.PM25 !== undefined && this.airQualityData.PM25 !== null) {
-      const pm25 = `PM2.5: ${this.airQualityData.PM25}`;
+      const pm25 = `PM2.5:&nbsp;&nbsp;${this.airQualityData.PM25}`;
       pmData += ` | ${pm25}`;
     } else if (this.config.showPM25) {
-      pmData += " | PM2.5: N/A";
+      pmData += " | PM2.5:&nbsp;&nbsp;N/A";
     }
 
     pmInfo.innerHTML = pmData;
