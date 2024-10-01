@@ -2,7 +2,9 @@
 
 ![image](https://github.com/user-attachments/assets/d81e179a-db93-4074-b4b1-d4b8db255f29)
 
-![image](https://github.com/user-attachments/assets/e6643cd2-e12c-4edb-bf4e-c126897f93f3)
+![image](https://github.com/user-attachments/assets/778da9d0-7f6c-438e-b0e1-cedc12642b47)
+
+
 
 
 A module for the [MagicMirror²](https://magicmirror.builders) to display air quality information using data from the ambee API. This module provides real-time air quality index (AQI) and other pollutants and pollen related data.
