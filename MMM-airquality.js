@@ -59,41 +59,48 @@ Module.register("MMM-airquality", {
 
     const mainWrapper = document.createElement("div");
 
-    // Row 1: City, AQI, and Particulate Matter (PM10, PM2.5 if enabled)
+    // Row 1: City and AQI
     const cityAqi = document.createElement("div");
     cityAqi.className = "city-aqi bright medium light";
     const city = this.airQualityData.city || "Unknown Location";
     const aqi = this.airQualityData.AQI || "N/A";
     const aqiCategory = (this.airQualityData.aqiInfo && this.airQualityData.aqiInfo.category) || "N/A";
 
-    let additionalInfo = "";
+    cityAqi.innerHTML = `${city} | AQI ${aqi} (${aqiCategory})`;
+    mainWrapper.appendChild(cityAqi);
+
+    // Row 2: Particulate Matter (PM10 and PM2.5 if enabled)
+    const pmInfo = document.createElement("div");
+    pmInfo.className = "pm-info small";
+
+    let pmData = "";
 
     // Check if PM10 data is available before showing it
     if (this.config.showPM10 && this.airQualityData.PM10 !== undefined && this.airQualityData.PM10 !== null) {
       const pm10 = `PM10: ${this.airQualityData.PM10}`;
-      additionalInfo += ` | ${pm10}`;
+      pmData += `${pm10}`;
     } else if (this.config.showPM10) {
-      additionalInfo += " | PM10: N/A";
+      pmData += "PM10: N/A";
     }
 
     // Check if PM2.5 data is available before showing it
     if (this.config.showPM25 && this.airQualityData.PM25 !== undefined && this.airQualityData.PM25 !== null) {
       const pm25 = `PM2.5: ${this.airQualityData.PM25}`;
-      additionalInfo += ` | ${pm25}`;
+      pmData += ` | ${pm25}`;
     } else if (this.config.showPM25) {
-      additionalInfo += " | PM2.5: N/A";
+      pmData += " | PM2.5: N/A";
     }
 
-    cityAqi.innerHTML = `${city} | AQI ${aqi} (${aqiCategory})${additionalInfo}`;
-    mainWrapper.appendChild(cityAqi);
+    pmInfo.innerHTML = pmData;
+    mainWrapper.appendChild(pmInfo);
 
-    // Row 2: "Pollen count"
+    // Row 3: "Pollen count"
     const pollenCountTitle = document.createElement("div");
     pollenCountTitle.className = "pollen-count-title small bright";
     pollenCountTitle.innerHTML = "Pollen count";
     mainWrapper.appendChild(pollenCountTitle);
 
-    // Row 3 & 4: Today's pollen counts and species
+    // Row 4 & 5: Today's pollen counts and species
     const pollenCounts = document.createElement("div");
     pollenCounts.className = "pollen-counts small bright";
 
