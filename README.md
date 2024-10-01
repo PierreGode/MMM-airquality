@@ -35,15 +35,17 @@ Here is an example of the configuration:
 ```bash
 {
   module: "MMM-airquality",
-  position: "bottom_right",  // Choose any position you'd like
+  position: "bottom_right",            // Choose any position you´d like
   config: {
-    apiKey: "YOUR_AMBEE_API_KEY",    // Replace with your Ambee API Key
-    latitude: "59.3293",             // Latitude of your location (Stockholm in this example)
-    longitude: "18.0686",            // Longitude of your location
-    updateInterval: 3600000,          // Update every hour 100 calls a day limitation from api and we call several endpoints.
-    animationSpeed: 1000,            // 1 second for DOM animations
-    showPollenForecast: true, // New option to control pollen forecast display
-    debug: false                     // Set to true to enable logging for debugging
+    apiKey: "YOUR_AMBEE_API_KEY",      // Replace with your Ambee API Key
+    latitude: "59.3293",               // Latitude of your location (Stockholm in this example)
+    longitude: "18.0686",              // Longitude of your location
+    showPM10: true,                    // Show PM10 data
+    showPM25: true,                    // Show PM2.5 data
+    updateInterval: 3600000,           // Update every hour 100 calls a day limitation from api and we call several endpoints.
+    animationSpeed: 1000,              // 1 second for DOM animations
+    showPollenForecast: true,          // New option to control pollen forecast display
+    debug: false                       // Set to true to enable logging for debugging
   },
 },
 
@@ -56,4 +58,6 @@ Here is an example of the configuration:
 | --- | --- | 
 | `apiKey` | **Required**: Your AirVisual API key. Get it from here. | 
 | `latitude` | **Required**: Your location's latitude. Example: `"59.3293"` for Stockholm. | 
-| `longitude` | **Required**: Your location's longitude. Example: `"18.0686"` for Stockholm. | |
+| `longitude` | **Required**: Your location's longitude. Example: `"18.0686"` for Stockholm. |
+| `showPM10` | Show or Hide ( true : false )  PM10 data. |
+| `showPM25` | Show or Hide ( true : false ) PM10 data. |

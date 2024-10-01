@@ -6,7 +6,9 @@ Module.register("MMM-airquality", {
     updateInterval: 900000, // Update every 15 minutes (max 96 calls/day)
     animationSpeed: 1000, // Animation speed in milliseconds
     units: "si",          // Units to be passed to API (e.g., si for Celsius)
-    showPollenForecast: true, // New option to control pollen forecast display
+    showPollenForecast: true, // Option to control pollen forecast display
+    showPM10: true,       // Option to show or hide PM10
+    showPM25: true,       // Option to show or hide PM2.5
     debug: false,
   },
 
@@ -15,7 +17,7 @@ Module.register("MMM-airquality", {
     this.loaded = false;
     this.pollenData = null;
     this.airQualityData = null;
-    this.pollenForecastData = null; // Initialize pollenForecastData
+    this.pollenForecastData = null;
     this.scheduleUpdate();
     this.updateTimer = null;
 
@@ -63,16 +65,42 @@ Module.register("MMM-airquality", {
     const city = this.airQualityData.city || "Unknown Location";
     const aqi = this.airQualityData.AQI || "N/A";
     const aqiCategory = (this.airQualityData.aqiInfo && this.airQualityData.aqiInfo.category) || "N/A";
+
     cityAqi.innerHTML = `${city} | AQI ${aqi} (${aqiCategory})`;
     mainWrapper.appendChild(cityAqi);
 
-    // Row 2: "Pollen count"
+    // Row 2: Particulate Matter (PM10 and PM2.5 if enabled)
+    const pmInfo = document.createElement("div");
+    pmInfo.className = "pm-info small";
+
+    let pmData = "";
+
+    // Check if PM10 data is available before showing it
+    if (this.config.showPM10 && this.airQualityData.PM10 !== undefined && this.airQualityData.PM10 !== null) {
+      const pm10 = `PM10:&nbsp;&nbsp;${this.airQualityData.PM10}`;
+      pmData += `${pm10}`;
+    } else if (this.config.showPM10) {
+      pmData += "PM10:&nbsp;&nbsp;N/A";
+    }
+
+    // Check if PM2.5 data is available before showing it
+    if (this.config.showPM25 && this.airQualityData.PM25 !== undefined && this.airQualityData.PM25 !== null) {
+      const pm25 = `PM2.5:&nbsp;&nbsp;${this.airQualityData.PM25}`;
+      pmData += ` | ${pm25}`;
+    } else if (this.config.showPM25) {
+      pmData += " | PM2.5:&nbsp;&nbsp;N/A";
+    }
+
+    pmInfo.innerHTML = pmData;
+    mainWrapper.appendChild(pmInfo);
+
+    // Row 3: "Pollen count"
     const pollenCountTitle = document.createElement("div");
     pollenCountTitle.className = "pollen-count-title small bright";
     pollenCountTitle.innerHTML = "Pollen count";
     mainWrapper.appendChild(pollenCountTitle);
 
-    // Row 3 & 4: Today's pollen counts and species
+    // Row 4 & 5: Today's pollen counts and species
     const pollenCounts = document.createElement("div");
     pollenCounts.className = "pollen-counts small bright";
 
