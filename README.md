@@ -10,7 +10,7 @@
 
 
 
-A module for the [MagicMirror²](https://magicmirror.builders) to display air quality information using data from the ambee API. This module provides real-time air quality index (AQI) and other pollutants and pollen related data.
+A module for the [MagicMirror²](https://magicmirror.builders) to display air quality and Pollen information using data from the ambee API. This module provides real-time air quality index (AQI) and other pollutants and pollen related data.
 
 ## Screenshots
 
