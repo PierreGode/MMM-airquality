@@ -68,14 +68,20 @@ Module.register("MMM-airquality", {
 
     let additionalInfo = "";
 
-    if (this.config.showPM10 && this.airQualityData.PM10 !== undefined) {
+    // Check if PM10 data is available before showing it
+    if (this.config.showPM10 && this.airQualityData.PM10 !== undefined && this.airQualityData.PM10 !== null) {
       const pm10 = `PM10: ${this.airQualityData.PM10}`;
       additionalInfo += ` | ${pm10}`;
+    } else if (this.config.showPM10) {
+      additionalInfo += " | PM10: N/A";
     }
 
-    if (this.config.showPM25 && this.airQualityData.PM25 !== undefined) {
+    // Check if PM2.5 data is available before showing it
+    if (this.config.showPM25 && this.airQualityData.PM25 !== undefined && this.airQualityData.PM25 !== null) {
       const pm25 = `PM2.5: ${this.airQualityData.PM25}`;
       additionalInfo += ` | ${pm25}`;
+    } else if (this.config.showPM25) {
+      additionalInfo += " | PM2.5: N/A";
     }
 
     cityAqi.innerHTML = `${city} | AQI ${aqi} (${aqiCategory})${additionalInfo}`;
@@ -209,7 +215,97 @@ Module.register("MMM-airquality", {
   },
 
   processForecastData(forecastData) {
-    // ... (same as before, no changes needed here)
+    const dayMap = {};
+
+    forecastData.forEach(entry => {
+      const time = entry.time;
+      const date = new Date(time * 1000);
+      const day = date.toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' }); // Use default system locale
+
+      if (!dayMap[day]) {
+        dayMap[day] = {
+          date: date,
+          countsList: {
+            grass_pollen: [],
+            tree_pollen: [],
+            weed_pollen: []
+          },
+          risksList: {
+            grass_pollen: [],
+            tree_pollen: [],
+            weed_pollen: []
+          }
+        };
+      }
+
+      // Collect counts
+      dayMap[day].countsList.grass_pollen.push(entry.Count.grass_pollen || 0);
+      dayMap[day].countsList.tree_pollen.push(entry.Count.tree_pollen || 0);
+      dayMap[day].countsList.weed_pollen.push(entry.Count.weed_pollen || 0);
+
+      // Collect risk levels
+      dayMap[day].risksList.grass_pollen.push(entry.Risk.grass_pollen);
+      dayMap[day].risksList.tree_pollen.push(entry.Risk.tree_pollen);
+      dayMap[day].risksList.weed_pollen.push(entry.Risk.weed_pollen);
+    });
+
+    const dayArray = Object.values(dayMap).sort((a, b) => a.date - b.date);
+
+    // Add logic to ensure first day is Today, second day is Tomorrow, and the rest follow as weekdays.
+    const forecastDataProcessed = dayArray.map((dayData, index) => {
+      const countsList = dayData.countsList;
+      const risksList = dayData.risksList;
+
+      // Calculate average counts
+      const counts = {
+        grass_pollen: this.average(countsList.grass_pollen),
+        tree_pollen: this.average(countsList.tree_pollen),
+        weed_pollen: this.average(countsList.weed_pollen)
+      };
+
+      // Determine the highest risk level per pollen type for the day
+      const riskLevelsOrder = ["Low", "Moderate", "High", "Very High"];
+      const risks = {
+        grass_pollen: this.highestRisk(risksList.grass_pollen, riskLevelsOrder),
+        tree_pollen: this.highestRisk(risksList.tree_pollen, riskLevelsOrder),
+        weed_pollen: this.highestRisk(risksList.weed_pollen, riskLevelsOrder)
+      };
+
+      // Find the pollen type(s) with the highest average count
+      const maxCount = Math.max(counts.grass_pollen, counts.tree_pollen, counts.weed_pollen);
+
+      const highestPollenTypes = [];
+      ["grass_pollen", "tree_pollen", "weed_pollen"].forEach(source => {
+        if (counts[source] === maxCount && counts[source] > 0) {
+          highestPollenTypes.push({
+            source: source.replace('_pollen', '').replace(/\b\w/g, l => l.toUpperCase()),
+            risk: risks[source],
+            count: Math.round(counts[source])
+          });
+        }
+      });
+
+      // Label the days as "Today", "Tomorrow", and then regular weekdays
+      let weekday;
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      if (dayData.date.toDateString() === today.toDateString()) {
+        weekday = "Today";
+      } else if (dayData.date.toDateString() === tomorrow.toDateString()) {
+        weekday = "Tomorrow";
+      } else {
+        weekday = dayData.date.toLocaleDateString(undefined, { weekday: 'long' }); // Use system locale for the weekday name
+      }
+
+      return {
+        weekday: weekday,
+        highestPollenTypes: highestPollenTypes
+      };
+    });
+
+    return forecastDataProcessed;
   },
 
   // Helper function to calculate average
