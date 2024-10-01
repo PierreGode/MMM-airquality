@@ -1,8 +1,11 @@
 # MMM-airquality
 
-![image](https://github.com/user-attachments/assets/d81e179a-db93-4074-b4b1-d4b8db255f29)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J2EARPK)  ![Open Issues](https://img.shields.io/github/issues/PierreGode/MMM-airquality) ![Open PRs](https://img.shields.io/github/issues-pr/PierreGode/MMM-airquality)
 
-![image](https://github.com/user-attachments/assets/778da9d0-7f6c-438e-b0e1-cedc12642b47)
+
+
+![image](https://github.com/user-attachments/assets/778da9d0-7f6c-438e-b0e1-cedc12642b47) ![image](https://github.com/user-attachments/assets/7afe5087-df9f-4d4d-abba-8d67eab04661)
+
 
 
 
