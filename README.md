@@ -35,7 +35,7 @@ Here is an example of the configuration:
 ```bash
 {
   module: "MMM-airquality",
-  position: "bottom_right",  // Choose any position you'd like
+  position: "bottom_right",            // Choose any position you´d like
   config: {
     apiKey: "YOUR_AMBEE_API_KEY",      // Replace with your Ambee API Key
     latitude: "59.3293",               // Latitude of your location (Stockholm in this example)
