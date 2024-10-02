@@ -9,7 +9,7 @@ A module for the [MagicMirror²](https://magicmirror.builders) to display air qu
 
 ## Screenshots
 
-![image](img/screen1.png) ![image](img/screen2.png)
+![image](img/screen2.png) ![image](img/screen1.png)
 
 ## Installation
 
