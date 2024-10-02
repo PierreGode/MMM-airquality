@@ -1,6 +1,6 @@
 # MMM-airquality
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J2EARPK)  ![Open Issues](https://img.shields.io/github/issues/PierreGode/MMM-airquality) ![Open PRs](https://img.shields.io/github/issues-pr/PierreGode/MMM-airquality)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J2EARPK)  ![Open Issues](https://img.shields.io/github/issues/PierreGode/MMM-airquality) ![Open PRs](https://img.shields.io/github/issues-pr/PierreGode/MMM-airquality) ![Visitor Count](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/PierreGode/MMM-airquality)
 
 
 
@@ -28,16 +28,18 @@ Navigate to the module folder:
 cd MMM-airquality
 ```
 Install the dependencies:
-npm install
 
+```npm
+npm install
+```
 Configuration
-To use this module, you will need to configure it in your config.js file of MagicMirror. You can obtain an API key from https://auth.ambeedata.com/users/register?redirectUrl=https://api-dashboard.getambee.com.
+To use this module, you will need to configure it in your config.js file of MagicMirror. You can obtain an API key from [ambee API](https://auth.ambeedata.com/users/register?redirectUrl=https://api-dashboard.getambee.com)
 
 Here is an example of the configuration:
 ```bash
 {
   module: "MMM-airquality",
-  position: "bottom_right",            // Choose any position you'd like
+  position: "bottom_right",            // Choose any position you´d like
   config: {
     apiKey: "YOUR_AMBEE_API_KEY",      // Replace with your Ambee API Key
     latitude: "59.3293",               // Latitude of your location (Stockholm in this example)
@@ -60,7 +62,7 @@ Here is an example of the configuration:
 ### Errors
 
 [ERRORI
-[MMM-airquality] Error fetching pollen data: 422: this will mean that you have reached your 100 API call limmit. try setting updateInterval: to a higher number.
+[MMM-airquality] Error fetching pollen data: 422: <p>This will mean that you have reached your 100 daily API call limmit. try setting updateInterval: to a higher number.
 
 
 ### Configuration Options 
