@@ -311,7 +311,7 @@ Module.register("MMM-airquality", {
       });
 
       let weekday;
-      const today = new Date();
+      const today = new Date(Date.now());
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
 

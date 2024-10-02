@@ -13,33 +13,29 @@ A module for the [MagicMirror²](https://magicmirror.builders) to display air qu
 
 ## Installation
 
-1. Navigate to your MagicMirror `modules` folder:
+Just clone the module into your modules directory:
 
-    ```bash
-    cd ~/MagicMirror/modules
-    ```
+```bash
+cd ~/MagicMirror/modules
+git clone https://github.com/PierreGode/MMM-airquality
+```
 
-2. Clone the repository:
+## Update
 
-    ```bash
-    git clone https://github.com/PierreGode/MMM-airquality
-    ```
+Just enter the module's directory and pull the update:
 
-3. Navigate to the module folder:
-
-    ```bash
-    cd MMM-airquality
-    ```
-
-4. Install the dependencies:
-
-    ```bash
-    npm install
-    ```
+```bash
+cd ~/MagicMirror/modules/MMM-NHL
+git pull
+```
 
 ## Configuration
 
-To use this module, you will need to configure it in your config.js file of MagicMirror. You can obtain an API key from [ambee API](https://auth.ambeedata.com/users/register?redirectUrl=https://api-dashboard.getambee.com)
+To use this module, you need to configure it in your config.js file of MagicMirror.
+
+You can obtain an API key from [ambee API](https://auth.ambeedata.com/users/register?redirectUrl=https://api-dashboard.getambee.com)
+
+### Configuration Example
 
 Here is an example of the configuration:
 
