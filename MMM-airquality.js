@@ -90,11 +90,12 @@ Module.register("MMM-airquality", {
     pollenCountTitle.innerHTML = "Pollen count";
     mainWrapper.appendChild(pollenCountTitle);
 
-    // Row 4: Today's pollen counts
+    // Row 4: Today's pollen counts and species
     const pollenCounts = document.createElement("div");
     pollenCounts.className = "pollen-counts small bright";
     const counts = this.pollenData.Count;
     const risks = this.pollenData.Risk;
+    const species = this.pollenData.Species;
 
     let pollenAvailable = false;
 
@@ -103,6 +104,19 @@ Module.register("MMM-airquality", {
       grassDiv.innerHTML = `Grass Pollen: ${counts.grass_pollen} (${risks.grass_pollen})`;
       pollenCounts.appendChild(grassDiv);
       pollenAvailable = true;
+      
+      // Add Grass species
+      const grassSpecies = species.Grass;
+      const grassSpeciesDiv = document.createElement("div");
+      grassSpeciesDiv.className = "pollen-species xsmall dimmed";
+      let grassSpeciesHTML = '';
+      for (let sp in grassSpecies) {
+        if (grassSpecies[sp] > 0) {
+          grassSpeciesHTML += `${sp}: ${grassSpecies[sp]}<br>`;
+        }
+      }
+      grassSpeciesDiv.innerHTML = grassSpeciesHTML;
+      pollenCounts.appendChild(grassSpeciesDiv);
     }
 
     if (this.config.showTreePollen && counts.tree_pollen > 0) {
@@ -110,6 +124,19 @@ Module.register("MMM-airquality", {
       treeDiv.innerHTML = `Tree Pollen: ${counts.tree_pollen} (${risks.tree_pollen})`;
       pollenCounts.appendChild(treeDiv);
       pollenAvailable = true;
+      
+      // Add Tree species
+      const treeSpecies = species.Tree;
+      const treeSpeciesDiv = document.createElement("div");
+      treeSpeciesDiv.className = "pollen-species xsmall dimmed";
+      let treeSpeciesHTML = '';
+      for (let sp in treeSpecies) {
+        if (treeSpecies[sp] > 0) {
+          treeSpeciesHTML += `${sp}: ${treeSpecies[sp]}<br>`;
+        }
+      }
+      treeSpeciesDiv.innerHTML = treeSpeciesHTML;
+      pollenCounts.appendChild(treeSpeciesDiv);
     }
 
     if (this.config.showWeedPollen && counts.weed_pollen > 0) {
@@ -117,6 +144,19 @@ Module.register("MMM-airquality", {
       weedDiv.innerHTML = `Weed Pollen: ${counts.weed_pollen} (${risks.weed_pollen})`;
       pollenCounts.appendChild(weedDiv);
       pollenAvailable = true;
+      
+      // Add Weed species
+      const weedSpecies = species.Weed;
+      const weedSpeciesDiv = document.createElement("div");
+      weedSpeciesDiv.className = "pollen-species xsmall dimmed";
+      let weedSpeciesHTML = '';
+      for (let sp in weedSpecies) {
+        if (weedSpecies[sp] > 0) {
+          weedSpeciesHTML += `${sp}: ${weedSpecies[sp]}<br>`;
+        }
+      }
+      weedSpeciesDiv.innerHTML = weedSpeciesHTML;
+      pollenCounts.appendChild(weedSpeciesDiv);
     }
 
     if (!pollenAvailable) {
