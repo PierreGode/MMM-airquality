@@ -37,19 +37,23 @@ Here is an example of the configuration:
 ```bash
 {
   module: "MMM-airquality",
-  position: "bottom_right",            // Choose any position you´d like
+  position: "bottom_right",            // Choose any position you'd like
   config: {
     apiKey: "YOUR_AMBEE_API_KEY",      // Replace with your Ambee API Key
     latitude: "59.3293",               // Latitude of your location (Stockholm in this example)
     longitude: "18.0686",              // Longitude of your location
     showPM10: true,                    // Show PM10 data
     showPM25: true,                    // Show PM2.5 data
-    updateInterval: 3600000,           // Update every hour 100 calls a day limitation from api and we call several endpoints.
+    updateInterval: 3600000,           // Update every hour
     animationSpeed: 1000,              // 1 second for DOM animations
-    showPollenForecast: true,          // New option to control pollen forecast display
+    showPollenForecast: true,          // Control pollen forecast display
+    showGrassPollen: true,             // New option to show or hide Grass pollen
+    showTreePollen: true,              // New option to show or hide Tree pollen
+    showWeedPollen: true,              // New option to show or hide Weed pollen
     debug: false                       // Set to true to enable logging for debugging
   },
 },
+
 
 
 ```
