@@ -96,83 +96,109 @@ Module.register("MMM-airquality", {
     const counts = this.pollenData.Count;
     const risks = this.pollenData.Risk;
 
+    let pollenAvailable = false;
+
     if (this.config.showGrassPollen && counts.grass_pollen > 0) {
       const grassDiv = document.createElement("div");
       grassDiv.innerHTML = `Grass Pollen: ${counts.grass_pollen} (${risks.grass_pollen})`;
       pollenCounts.appendChild(grassDiv);
+      pollenAvailable = true;
     }
 
     if (this.config.showTreePollen && counts.tree_pollen > 0) {
       const treeDiv = document.createElement("div");
       treeDiv.innerHTML = `Tree Pollen: ${counts.tree_pollen} (${risks.tree_pollen})`;
       pollenCounts.appendChild(treeDiv);
+      pollenAvailable = true;
     }
 
     if (this.config.showWeedPollen && counts.weed_pollen > 0) {
       const weedDiv = document.createElement("div");
       weedDiv.innerHTML = `Weed Pollen: ${counts.weed_pollen} (${risks.weed_pollen})`;
       pollenCounts.appendChild(weedDiv);
+      pollenAvailable = true;
+    }
+
+    if (!pollenAvailable) {
+      pollenCounts.innerHTML = "No Pollen";
     }
 
     mainWrapper.appendChild(pollenCounts);
 
-    // Conditionally show the pollen forecast
+    // Conditionally show the pollen forecast only if pollen is found in the selected types
     if (this.config.showPollenForecast) {
-      const separator = document.createElement("hr");
-      separator.className = "separator";
-      mainWrapper.appendChild(separator);
-
-      const forecastTitle = document.createElement("div");
-      forecastTitle.className = "forecast-title small bright";
-      forecastTitle.innerHTML = "Pollen Forecast";
-      mainWrapper.appendChild(forecastTitle);
-
-      const forecastTable = document.createElement("table");
-      forecastTable.className = "forecast-table small";
-
-      const headerRow = document.createElement("tr");
-      const dayHeader = document.createElement("th");
-      dayHeader.innerHTML = "Day";
-      const pollenTypeHeader = document.createElement("th");
-      pollenTypeHeader.innerHTML = "Pollen Type";
-      const riskHeader = document.createElement("th");
-      riskHeader.innerHTML = "Risk Level";
-      const countHeader = document.createElement("th");
-      countHeader.innerHTML = "Count";
-
-      headerRow.appendChild(dayHeader);
-      headerRow.appendChild(pollenTypeHeader);
-      headerRow.appendChild(riskHeader);
-      headerRow.appendChild(countHeader);
-      forecastTable.appendChild(headerRow);
-
       const forecastData = this.processForecastData(this.pollenForecastData);
 
-      forecastData.forEach(dayData => {
-        const row = document.createElement("tr");
-        row.className = "forecast-row";
+      const forecastHasSelectedPollen = forecastData.some(dayData =>
+        dayData.highestPollenTypes.some(pollenType => 
+          (pollenType.source === "Grass" && this.config.showGrassPollen) ||
+          (pollenType.source === "Tree" && this.config.showTreePollen) ||
+          (pollenType.source === "Weed" && this.config.showWeedPollen)
+        )
+      );
 
-        const dayCell = document.createElement("td");
-        dayCell.innerHTML = dayData.weekday;
-        row.appendChild(dayCell);
+      if (forecastHasSelectedPollen) {
+        const separator = document.createElement("hr");
+        separator.className = "separator";
+        mainWrapper.appendChild(separator);
 
-        const highestPollenType = dayData.highestPollenTypes[0];
-        const pollenTypeCell = document.createElement("td");
-        pollenTypeCell.innerHTML = highestPollenType.source;
-        row.appendChild(pollenTypeCell);
+        const forecastTitle = document.createElement("div");
+        forecastTitle.className = "forecast-title small bright";
+        forecastTitle.innerHTML = "Pollen Forecast";
+        mainWrapper.appendChild(forecastTitle);
 
-        const riskCell = document.createElement("td");
-        riskCell.innerHTML = highestPollenType.risk;
-        row.appendChild(riskCell);
+        const forecastTable = document.createElement("table");
+        forecastTable.className = "forecast-table small";
 
-        const countCell = document.createElement("td");
-        countCell.innerHTML = highestPollenType.count;
-        row.appendChild(countCell);
+        const headerRow = document.createElement("tr");
+        const dayHeader = document.createElement("th");
+        dayHeader.innerHTML = "Day";
+        const pollenTypeHeader = document.createElement("th");
+        pollenTypeHeader.innerHTML = "Pollen Type";
+        const riskHeader = document.createElement("th");
+        riskHeader.innerHTML = "Risk Level";
+        const countHeader = document.createElement("th");
+        countHeader.innerHTML = "Count";
 
-        forecastTable.appendChild(row);
-      });
+        headerRow.appendChild(dayHeader);
+        headerRow.appendChild(pollenTypeHeader);
+        headerRow.appendChild(riskHeader);
+        headerRow.appendChild(countHeader);
+        forecastTable.appendChild(headerRow);
 
-      mainWrapper.appendChild(forecastTable);
+        forecastData.forEach(dayData => {
+          dayData.highestPollenTypes.forEach(pollenType => {
+            if (
+              (pollenType.source === "Grass" && this.config.showGrassPollen) ||
+              (pollenType.source === "Tree" && this.config.showTreePollen) ||
+              (pollenType.source === "Weed" && this.config.showWeedPollen)
+            ) {
+              const row = document.createElement("tr");
+              row.className = "forecast-row";
+
+              const dayCell = document.createElement("td");
+              dayCell.innerHTML = dayData.weekday;
+              row.appendChild(dayCell);
+
+              const pollenTypeCell = document.createElement("td");
+              pollenTypeCell.innerHTML = pollenType.source;
+              row.appendChild(pollenTypeCell);
+
+              const riskCell = document.createElement("td");
+              riskCell.innerHTML = pollenType.risk;
+              row.appendChild(riskCell);
+
+              const countCell = document.createElement("td");
+              countCell.innerHTML = pollenType.count;
+              row.appendChild(countCell);
+
+              forecastTable.appendChild(row);
+            }
+          });
+        });
+
+        mainWrapper.appendChild(forecastTable);
+      }
     }
 
     wrapper.appendChild(mainWrapper);
