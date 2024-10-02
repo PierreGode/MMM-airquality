@@ -57,6 +57,10 @@ Here is an example of the configuration:
 
 
 ```
+### Errors
+
+[ERRORI
+[MMM-airquality] Error fetching pollen data: 422: this will mean that you have reached your 100 API call limmit. try setting updateInterval: to a lower number.
 
 
 ### Configuration Options 
