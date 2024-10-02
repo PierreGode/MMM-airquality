@@ -44,7 +44,7 @@ Here is an example of the configuration:
     longitude: "18.0686",              // Longitude of your location
     showPM10: true,                    // Show PM10 data
     showPM25: true,                    // Show PM2.5 data
-    updateInterval: 3600000,           // Update every hour ( ambee has 100 calls a day. and app uses 2 endpoints )
+    updateInterval: 3600000,           // Update every hour ( ambee has 100 calls a day. and app uses 3 endpoints so lowest updateInterval is : ~2,618,181 milliseconds (about 43.6 minutes). )
     animationSpeed: 1000,              // 1 second for DOM animations
     showPollenForecast: true,          // Control pollen forecast display
     showGrassPollen: true,             // Option to show or hide Grass pollen
