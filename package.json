@@ -1,17 +1,20 @@
 {
-    "name": "mmm-airquality",
-    "version": "1.1.0",
-    "description": "A MagicMirror² module to display air quality information using data from the AirVisual API.",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/PierreGode/MMM-airquality.git"
-    },
-    "keywords": [
-        "magicmirror",
-        "airquality",
-        "pollution",
-        "weather"
-    ],
-    "author": "PierreGode",
-    "license": "MIT"
+  "name": "mmm-airquality",
+  "version": "1.1.0",
+  "description": "A MagicMirror² module to display air quality information using data from the Ambee API.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PierreGode/MMM-airquality.git"
+  },
+  "keywords": [
+    "magicmirror",
+    "airquality",
+    "pollution",
+    "weather"
+  ],
+  "author": "PierreGode",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
 }
