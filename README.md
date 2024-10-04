@@ -42,20 +42,22 @@ Here is an example of the configuration:
 ```js
 {
   module: "MMM-airquality",
-  position: "bottom_right",            // Choose any position you´d like
+  position: "bottom_right",
   config: {
-    apiKey: "YOUR_AMBEE_API_KEY",      // Replace with your Ambee API Key
-    latitude: "59.3293",               // Latitude of your location (Stockholm in this example)
-    longitude: "18.0686",              // Longitude of your location
-    showPM10: true,                    // Show PM10 data
-    showPM25: true,                    // Show PM2.5 data
-    updateInterval: 3600000,           // Update every hour ( ambee has 100 calls a day. and app uses 3 endpoints so lowest updateInterval is : ~2,618,181 milliseconds (about 43.6 minutes). )
-    animationSpeed: 1000,              // 1 second for DOM animations
-    showPollenForecast: true,          // Control pollen forecast display
-    showGrassPollen: true,             // Option to show or hide Grass pollen
-    showTreePollen: true,              // Option to show or hide Tree pollen
-    showWeedPollen: true,              // Option to show or hide Weed pollen
-    debug: false                       // Set to true to enable logging for debugging
+    apiKey: "YOUR_AMBEE_API_KEY",
+    latitude: "59.3293",  // Stockholm
+    longitude: "18.0686", // Stockholm
+    showPM10: true,
+    showPM25: true,
+    updateInterval: 3600000,
+    animationSpeed: 1000,
+    showPollenForecast: true,
+    showGrassPollen: true,
+    showTreePollen: true,
+    showWeedPollen: true,
+    startsilentHour: 23, // Begin ignore period at 23:00
+    endsilentHour: 6,    // End ignore period at 06:00
+    debug: false
   },
 },
 ```
