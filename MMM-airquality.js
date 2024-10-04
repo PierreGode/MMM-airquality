@@ -12,6 +12,8 @@ Module.register("MMM-airquality", {
     showGrassPollen: true, // Option to show or hide Grass pollen
     showTreePollen: true,  // Option to show or hide Tree pollen
     showWeedPollen: true,  // Option to show or hide Weed pollen
+    startsilentHour: 23,  // Begin ignore period at 23:00
+    endsilentHour: 6,     // End ignore period at 06:00
     debug: false,
   },
 
@@ -21,7 +23,6 @@ Module.register("MMM-airquality", {
     this.pollenData = null;
     this.airQualityData = null;
     this.pollenForecastData = null;
-    this.scheduleUpdate();
     this.updateTimer = null;
 
     if (this.config.debug) {
@@ -29,16 +30,33 @@ Module.register("MMM-airquality", {
     }
     Log.info("[MMM-airquality] Initializing data fetch...");
     this.updateData(this);
+    this.scheduleUpdate();
+  },
+
+  isSilentHour() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const { startsilentHour, endsilentHour } = this.config;
+    if (startsilentHour > endsilentHour) {
+      // Silent hours wrap around midnight
+      return currentHour >= startsilentHour || currentHour < endsilentHour;
+    } else {
+      return currentHour >= startsilentHour && currentHour < endsilentHour;
+    }
   },
 
   updateData(self) {
-    Log.info("[MMM-airquality] Sending socket notification to fetch data...");
-    self.sendSocketNotification("GET_DATA", {
-      apiKey: self.config.apiKey,
-      latitude: self.config.latitude,
-      longitude: self.config.longitude,
-      units: self.config.units
-    });
+    if (!this.isSilentHour()) {
+      Log.info("[MMM-airquality] Sending socket notification to fetch data...");
+      self.sendSocketNotification("GET_DATA", {
+        apiKey: self.config.apiKey,
+        latitude: self.config.latitude,
+        longitude: self.config.longitude,
+        units: self.config.units
+      });
+    } else {
+      Log.info("[MMM-airquality] Silent hours active, skipping API call.");
+    }
   },
 
   getStyles() {
@@ -75,12 +93,22 @@ Module.register("MMM-airquality", {
     const pmInfo = document.createElement("div");
     pmInfo.className = "pm-info small";
     let pmData = "";
+
+    // Check if PM10 is visible
     if (this.config.showPM10 && this.airQualityData.PM10) {
       pmData += `PM10: ${this.airQualityData.PM10}`;
     }
-    if (this.config.showPM25 && this.airQualityData.PM25) {
-      pmData += ` | PM2.5: ${this.airQualityData.PM25}`;
+
+    // Add pipe only if both PM10 and PM2.5 are visible
+    if (this.config.showPM10 && this.airQualityData.PM10 && this.config.showPM25 && this.airQualityData.PM25) {
+      pmData += " | ";
     }
+
+    // Check if PM2.5 is visible
+    if (this.config.showPM25 && this.airQualityData.PM25) {
+      pmData += `PM2.5: ${this.airQualityData.PM25}`;
+    }
+
     pmInfo.innerHTML = pmData;
     mainWrapper.appendChild(pmInfo);
 
@@ -378,14 +406,38 @@ Module.register("MMM-airquality", {
       Log.info("[MMM-airquality] All data loaded, updating DOM");
       this.loaded = true;
       this.updateDom(this.config.animationSpeed);
-      this.scheduleUpdate();
     } else {
       Log.info("[MMM-airquality] Data still loading...");
     }
+    // Schedule the next update
+    this.scheduleUpdate();
   },
 
   scheduleUpdate(delay = null) {
-    const nextLoad = delay !== null ? delay : this.config.updateInterval;
+    let nextLoad;
+    if (delay !== null) {
+      nextLoad = delay;
+    } else {
+      if (this.isSilentHour()) {
+        // Calculate time until endsilentHour
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentSecond = now.getSeconds();
+        let targetHour = this.config.endsilentHour;
+        let hoursUntilTarget = (targetHour - currentHour + 24) % 24;
+        let minutesUntilTarget = -currentMinute;
+        let secondsUntilTarget = -currentSecond;
+        let millisecondsUntilTarget = ((hoursUntilTarget * 60 + minutesUntilTarget) * 60 + secondsUntilTarget) * 1000;
+        if (millisecondsUntilTarget <= 0) {
+          millisecondsUntilTarget += 24 * 60 * 60 * 1000;
+        }
+        nextLoad = millisecondsUntilTarget;
+        Log.info(`[MMM-airquality] Silent hours active, scheduling next update at endsilentHour in ${Math.round(nextLoad/1000/60)} minutes.`);
+      } else {
+        nextLoad = this.config.updateInterval;
+      }
+    }
     const self = this;
     clearTimeout(this.updateTimer);
     this.updateTimer = setTimeout(() => {
