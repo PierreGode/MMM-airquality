@@ -25,7 +25,7 @@ git clone https://github.com/PierreGode/MMM-airquality
 Just enter the module's directory and pull the update:
 
 ```bash
-cd ~/MagicMirror/modules/MMM-NHL
+cd ~/MagicMirror/modules/MMM-airquality
 git pull
 ```
 
