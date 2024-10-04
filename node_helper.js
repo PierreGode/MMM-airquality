@@ -1,12 +1,13 @@
 const Log = require("logger");
 const NodeHelper = require("node_helper");
+const fetch = require("node-fetch");
 
 module.exports = NodeHelper.create({
-  start () {
+  start() {
     Log.log("[MMM-airquality] Node Helper started");
   },
 
-  socketNotificationReceived (notification, payload) {
+  socketNotificationReceived(notification, payload) {
     Log.log(`[MMM-airquality] Received socket notification: ${notification}`);
     if (notification === "GET_DATA") {
       Log.log("[MMM-airquality] Fetching data for pollen, air quality, and pollen forecast...");
@@ -14,7 +15,7 @@ module.exports = NodeHelper.create({
     }
   },
 
-  async getData (apiKey, latitude, longitude) {
+  async getData(apiKey, latitude, longitude) {
     const self = this;
 
     const pollenUrl = `https://api.ambeedata.com/latest/pollen/by-lat-lng?lat=${latitude}&lng=${longitude}`;
@@ -28,12 +29,12 @@ module.exports = NodeHelper.create({
 
     // Fetch Pollen Data
     try {
-      const response = await fetch(pollenUrl, {headers});
+      const response = await fetch(pollenUrl, { headers });
       if (!response.ok) {
         throw new Error(`[MMM-airquality] Error fetching pollen data: ${response.status}`);
       }
       const data = await response.json();
-      self.sendSocketNotification("POLLEN_RESULT", {data});
+      self.sendSocketNotification("POLLEN_RESULT", { data });
       Log.log("[MMM-airquality] Pollen data fetched");
     } catch (error) {
       Log.error("[MMM-airquality] Error fetching pollen data: " + error);
@@ -41,13 +42,13 @@ module.exports = NodeHelper.create({
 
     // Fetch Air Quality Data
     try {
-      const response = await fetch(airQualityUrl, {headers});
+      const response = await fetch(airQualityUrl, { headers });
       if (!response.ok) {
         throw new Error(`[MMM-airquality] Error fetching air quality data: ${response.status}`);
       }
       const data = await response.json();
       const airQualityResult = data.stations[0];
-      self.sendSocketNotification("AIR_QUALITY_RESULT", {data: airQualityResult});
+      self.sendSocketNotification("AIR_QUALITY_RESULT", { data: airQualityResult });
       Log.log("[MMM-airquality] Air quality data fetched");
     } catch (error) {
       Log.error("[MMM-airquality] Error fetching air quality data: " + error);
@@ -55,13 +56,13 @@ module.exports = NodeHelper.create({
 
     // Fetch Pollen Forecast Data
     try {
-      const response = await fetch(pollenForecastUrl, {headers});
+      const response = await fetch(pollenForecastUrl, { headers });
       if (!response.ok) {
         throw new Error(`[MMM-airquality] Error fetching pollen forecast data: ${response.status}`);
       }
       const data = await response.json();
       const pollenForecastResult = data.data;
-      self.sendSocketNotification("POLLEN_FORECAST_RESULT", {data: pollenForecastResult});
+      self.sendSocketNotification("POLLEN_FORECAST_RESULT", { data: pollenForecastResult });
       Log.log("[MMM-airquality] Pollen forecast data fetched");
     } catch (error) {
       Log.error("[MMM-airquality] Error fetching pollen forecast data: " + error);
