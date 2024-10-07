@@ -25,12 +25,25 @@ Module.register("MMM-airquality", {
     this.pollenForecastData = null;
     this.updateTimer = null;
 
+    // Initialize counters and timestamp storage
+    this.apiCallsToday = 0;
+    this.latestAPICallTimestamp = null;
+
     if (this.config.debug) {
       Log.info("[MMM-airquality] Debug mode ON");
     }
     Log.info("[MMM-airquality] Initializing data fetch...");
     this.updateData(this);
     this.scheduleUpdate();
+  },
+
+  resetDailyCounters() {
+    const now = new Date();
+    if (now.getHours() === 0 && now.getMinutes() === 0) {
+      this.apiCallsToday = 0;
+      this.latestAPICallTimestamp = null;
+      Log.info("[MMM-airquality] Daily API counters reset at midnight.");
+    }
   },
 
   isSilentHour() {
@@ -46,6 +59,7 @@ Module.register("MMM-airquality", {
   },
 
   updateData(self) {
+    this.resetDailyCounters();
     if (!this.isSilentHour()) {
       Log.info("[MMM-airquality] Sending socket notification to fetch data...");
       self.sendSocketNotification("GET_DATA", {
@@ -54,6 +68,10 @@ Module.register("MMM-airquality", {
         longitude: self.config.longitude,
         units: self.config.units
       });
+
+      // Update API call count and timestamp
+      this.apiCallsToday++;
+      this.latestAPICallTimestamp = new Date().toLocaleTimeString();
     } else {
       Log.info("[MMM-airquality] Silent hours active, skipping API call.");
     }
@@ -132,7 +150,7 @@ Module.register("MMM-airquality", {
       grassDiv.innerHTML = `Grass Pollen: ${counts.grass_pollen} (${risks.grass_pollen})`;
       pollenCounts.appendChild(grassDiv);
       pollenAvailable = true;
-      
+
       // Add Grass species
       const grassSpecies = species.Grass;
       const grassSpeciesDiv = document.createElement("div");
@@ -152,7 +170,7 @@ Module.register("MMM-airquality", {
       treeDiv.innerHTML = `Tree Pollen: ${counts.tree_pollen} (${risks.tree_pollen})`;
       pollenCounts.appendChild(treeDiv);
       pollenAvailable = true;
-      
+
       // Add Tree species
       const treeSpecies = species.Tree;
       const treeSpeciesDiv = document.createElement("div");
@@ -172,7 +190,7 @@ Module.register("MMM-airquality", {
       weedDiv.innerHTML = `Weed Pollen: ${counts.weed_pollen} (${risks.weed_pollen})`;
       pollenCounts.appendChild(weedDiv);
       pollenAvailable = true;
-      
+
       // Add Weed species
       const weedSpecies = species.Weed;
       const weedSpeciesDiv = document.createElement("div");
@@ -198,7 +216,7 @@ Module.register("MMM-airquality", {
       const forecastData = this.processForecastData(this.pollenForecastData);
 
       const forecastHasSelectedPollen = forecastData.some(dayData =>
-        dayData.highestPollenTypes.some(pollenType => 
+        dayData.highestPollenTypes.some(pollenType =>
           (pollenType.source === "Grass" && this.config.showGrassPollen) ||
           (pollenType.source === "Tree" && this.config.showTreePollen) ||
           (pollenType.source === "Weed" && this.config.showWeedPollen)
@@ -267,6 +285,14 @@ Module.register("MMM-airquality", {
 
         mainWrapper.appendChild(forecastTable);
       }
+    }
+
+    // Display debug info if enabled
+    if (this.config.debug) {
+      const debugInfo = document.createElement("div");
+      debugInfo.className = "debug-info xsmall";
+      debugInfo.innerHTML = `API calls today: ${this.apiCallsToday} | Latest API Call: ${this.latestAPICallTimestamp || "N/A"}`;
+      mainWrapper.appendChild(debugInfo);
     }
 
     wrapper.appendChild(mainWrapper);
