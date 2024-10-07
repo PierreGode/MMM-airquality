@@ -13,8 +13,5 @@
     "weather"
   ],
   "author": "PierreGode",
-  "license": "MIT",
-  "dependencies": {
-    "node-fetch": "^2.6.7"
-  }
+  "license": "MIT"
 }
