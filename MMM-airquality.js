@@ -112,17 +112,14 @@ Module.register("MMM-airquality", {
     pmInfo.className = "pm-info small";
     let pmData = "";
 
-    // Check if PM10 is visible
     if (this.config.showPM10 && this.airQualityData.PM10) {
       pmData += `PM10: ${this.airQualityData.PM10}`;
     }
 
-    // Add pipe only if both PM10 and PM2.5 are visible
     if (this.config.showPM10 && this.airQualityData.PM10 && this.config.showPM25 && this.airQualityData.PM25) {
       pmData += " | ";
     }
 
-    // Check if PM2.5 is visible
     if (this.config.showPM25 && this.airQualityData.PM25) {
       pmData += `PM2.5: ${this.airQualityData.PM25}`;
     }
@@ -151,7 +148,6 @@ Module.register("MMM-airquality", {
       pollenCounts.appendChild(grassDiv);
       pollenAvailable = true;
 
-      // Add Grass species
       const grassSpecies = species.Grass;
       const grassSpeciesDiv = document.createElement("div");
       grassSpeciesDiv.className = "pollen-species xsmall dimmed";
@@ -171,7 +167,6 @@ Module.register("MMM-airquality", {
       pollenCounts.appendChild(treeDiv);
       pollenAvailable = true;
 
-      // Add Tree species
       const treeSpecies = species.Tree;
       const treeSpeciesDiv = document.createElement("div");
       treeSpeciesDiv.className = "pollen-species xsmall dimmed";
@@ -191,7 +186,6 @@ Module.register("MMM-airquality", {
       pollenCounts.appendChild(weedDiv);
       pollenAvailable = true;
 
-      // Add Weed species
       const weedSpecies = species.Weed;
       const weedSpeciesDiv = document.createElement("div");
       weedSpeciesDiv.className = "pollen-species xsmall dimmed";
@@ -211,7 +205,6 @@ Module.register("MMM-airquality", {
 
     mainWrapper.appendChild(pollenCounts);
 
-    // Conditionally show the pollen forecast only if pollen is found in the selected types
     if (this.config.showPollenForecast) {
       const forecastData = this.processForecastData(this.pollenForecastData);
 
@@ -435,7 +428,6 @@ Module.register("MMM-airquality", {
     } else {
       Log.info("[MMM-airquality] Data still loading...");
     }
-    // Schedule the next update
     this.scheduleUpdate();
   },
 
@@ -445,7 +437,6 @@ Module.register("MMM-airquality", {
       nextLoad = delay;
     } else {
       if (this.isSilentHour()) {
-        // Calculate time until endsilentHour
         const now = new Date();
         const currentHour = now.getHours();
         const currentMinute = now.getMinutes();
