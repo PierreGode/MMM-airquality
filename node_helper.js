@@ -26,7 +26,6 @@ module.exports = NodeHelper.create({
       "Content-Type": "application/json"
     };
 
-    // Fetch Pollen Data
     try {
       const response = await fetch(pollenUrl, { headers });
       if (!response.ok) {
@@ -39,7 +38,6 @@ module.exports = NodeHelper.create({
       Log.error("[MMM-airquality] Error fetching pollen data: " + error);
     }
 
-    // Fetch Air Quality Data
     try {
       const response = await fetch(airQualityUrl, { headers });
       if (!response.ok) {
@@ -53,7 +51,6 @@ module.exports = NodeHelper.create({
       Log.error("[MMM-airquality] Error fetching air quality data: " + error);
     }
 
-    // Fetch Pollen Forecast Data
     try {
       const response = await fetch(pollenForecastUrl, { headers });
       if (!response.ok) {
