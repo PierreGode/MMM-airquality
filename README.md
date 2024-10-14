@@ -44,22 +44,23 @@ Here is an example of the configuration:
   module: "MMM-airquality",
   position: "bottom_right",
   config: {
-    apiKey: "YOUR_AMBEE_API_KEY",      // Replace with your Ambee API Key
-    latitude: "59.3293",               // Latitude of your location (Stockholm in this example)
-    longitude: "18.0686",              // Longitude of your location
-    showPM10: true,                    // Show PM10 data
-    showPM25: true,                    // Show PM2.5 data
-    updateInterval: 3600000,           // Update every hour ( ambee has 100 calls a day. and app uses 3 endpoints so lowest updateInterval is : ~2,618,181 milliseconds (about 43.6 minutes). )
-    animationSpeed: 1000,              // 1 second for DOM animations
-    showPollenForecast: true,          // Control pollen forecast display
-    showGrassPollen: true,             // Option to show or hide Grass pollen
-    showTreePollen: true,              // Option to show or hide Tree pollen
-    showWeedPollen: true,              // Option to show or hide Weed pollen
-    startsilentHour: 23,               // Begin ignore period at 23:00
-    endsilentHour: 6,                  // End ignore period at 06:00
-    debug: false                       // Set to true to enable logging for debugging
+    apiKey: "YOUR_TOMORROW_IO_API_KEY",  // Replace with your Tomorrow.io API Key
+    latitude: "59.3293",                 // Latitude of your location (e.g., Stockholm)
+    longitude: "18.0686",                // Longitude of your location
+    showPM10: true,                      // Show PM10 data
+    showPM25: true,                      // Show PM2.5 data
+    updateInterval: 3600000,             // Update every hour (max 24 calls/day with Tomorrow.io)
+    animationSpeed: 1000,                // 1 second for DOM animations
+    showPollenForecast: true,            // Control pollen forecast display
+    showGrassPollen: true,               // Option to show or hide Grass pollen
+    showTreePollen: true,                // Option to show or hide Tree pollen
+    showWeedPollen: true,                // Option to show or hide Weed pollen
+    startsilentHour: 23,                 // Begin ignore period at 23:00
+    endsilentHour: 6,                    // End ignore period at 06:00
+    debug: false                         // Set to true to enable logging for debugging
   },
 },
+
 ```
 ### Options
 Setting silent hours between 23 and 06 will allow you yo have more calls during daytime: updateInterval: 1855000, // 1,855,000 milliseconds = 30.9 minutes
