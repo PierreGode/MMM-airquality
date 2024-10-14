@@ -1,11 +1,11 @@
 Module.register("MMM-airquality", {
   defaults: {
-    apiKey: "",           // Ambee API Key
+    apiKey: "",           // Tomorrow.io API Key
     latitude: "",         // Latitude of your location
     longitude: "",        // Longitude of your location
     updateInterval: 900000, // Update every 15 minutes (max 96 calls/day)
     animationSpeed: 1000, // Animation speed in milliseconds
-    units: "si",          // Units to be passed to API (e.g., si for Celsius)
+    units: "metric",      // Units to be passed to API (metric or imperial)
     showPollenForecast: true, // Option to control pollen forecast display
     showPM10: true,       // Option to show or hide PM10
     showPM25: true,       // Option to show or hide PM2.5
@@ -105,8 +105,8 @@ Module.register("MMM-airquality", {
     }
 
     // Check if PM2.5 is visible
-    if (this.config.showPM25 && this.airQualityData.PM25) {
-      pmData += `PM2.5: ${this.airQualityData.PM25}`;
+    if (this.config.showPM25 && this.airQualityData.AQI) {
+      pmData += `PM2.5: ${this.airQualityData.AQI}`;
     }
 
     pmInfo.innerHTML = pmData;
@@ -123,7 +123,6 @@ Module.register("MMM-airquality", {
     pollenCounts.className = "pollen-counts small bright";
     const counts = this.pollenData.Count;
     const risks = this.pollenData.Risk;
-    const species = this.pollenData.Species;
 
     let pollenAvailable = false;
 
@@ -132,19 +131,6 @@ Module.register("MMM-airquality", {
       grassDiv.innerHTML = `Grass Pollen: ${counts.grass_pollen} (${risks.grass_pollen})`;
       pollenCounts.appendChild(grassDiv);
       pollenAvailable = true;
-      
-      // Add Grass species
-      const grassSpecies = species.Grass;
-      const grassSpeciesDiv = document.createElement("div");
-      grassSpeciesDiv.className = "pollen-species xsmall dimmed";
-      let grassSpeciesHTML = '';
-      for (let sp in grassSpecies) {
-        if (grassSpecies[sp] > 0) {
-          grassSpeciesHTML += `${sp}: ${grassSpecies[sp]}<br>`;
-        }
-      }
-      grassSpeciesDiv.innerHTML = grassSpeciesHTML;
-      pollenCounts.appendChild(grassSpeciesDiv);
     }
 
     if (this.config.showTreePollen && counts.tree_pollen > 0) {
@@ -152,19 +138,6 @@ Module.register("MMM-airquality", {
       treeDiv.innerHTML = `Tree Pollen: ${counts.tree_pollen} (${risks.tree_pollen})`;
       pollenCounts.appendChild(treeDiv);
       pollenAvailable = true;
-      
-      // Add Tree species
-      const treeSpecies = species.Tree;
-      const treeSpeciesDiv = document.createElement("div");
-      treeSpeciesDiv.className = "pollen-species xsmall dimmed";
-      let treeSpeciesHTML = '';
-      for (let sp in treeSpecies) {
-        if (treeSpecies[sp] > 0) {
-          treeSpeciesHTML += `${sp}: ${treeSpecies[sp]}<br>`;
-        }
-      }
-      treeSpeciesDiv.innerHTML = treeSpeciesHTML;
-      pollenCounts.appendChild(treeSpeciesDiv);
     }
 
     if (this.config.showWeedPollen && counts.weed_pollen > 0) {
@@ -172,19 +145,6 @@ Module.register("MMM-airquality", {
       weedDiv.innerHTML = `Weed Pollen: ${counts.weed_pollen} (${risks.weed_pollen})`;
       pollenCounts.appendChild(weedDiv);
       pollenAvailable = true;
-      
-      // Add Weed species
-      const weedSpecies = species.Weed;
-      const weedSpeciesDiv = document.createElement("div");
-      weedSpeciesDiv.className = "pollen-species xsmall dimmed";
-      let weedSpeciesHTML = '';
-      for (let sp in weedSpecies) {
-        if (weedSpecies[sp] > 0) {
-          weedSpeciesHTML += `${sp}: ${weedSpecies[sp]}<br>`;
-        }
-      }
-      weedSpeciesDiv.innerHTML = weedSpeciesHTML;
-      pollenCounts.appendChild(weedSpeciesDiv);
     }
 
     if (!pollenAvailable) {
@@ -198,7 +158,7 @@ Module.register("MMM-airquality", {
       const forecastData = this.processForecastData(this.pollenForecastData);
 
       const forecastHasSelectedPollen = forecastData.some(dayData =>
-        dayData.highestPollenTypes.some(pollenType => 
+        dayData.highestPollenTypes.some(pollenType =>
           (pollenType.source === "Grass" && this.config.showGrassPollen) ||
           (pollenType.source === "Tree" && this.config.showTreePollen) ||
           (pollenType.source === "Weed" && this.config.showWeedPollen)
@@ -277,67 +237,29 @@ Module.register("MMM-airquality", {
     const dayMap = {};
 
     forecastData.forEach(entry => {
-      const time = entry.time;
-      const date = new Date(time * 1000);
+      const date = new Date(entry.time * 1000);
       const day = date.toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' });
 
       if (!dayMap[day]) {
         dayMap[day] = {
           date: date,
-          countsList: {
-            grass_pollen: [],
-            tree_pollen: [],
-            weed_pollen: []
-          },
-          risksList: {
-            grass_pollen: [],
-            tree_pollen: [],
-            weed_pollen: []
-          }
+          highestPollenTypes: []
         };
       }
 
-      dayMap[day].countsList.grass_pollen.push(entry.Count.grass_pollen || 0);
-      dayMap[day].countsList.tree_pollen.push(entry.Count.tree_pollen || 0);
-      dayMap[day].countsList.weed_pollen.push(entry.Count.weed_pollen || 0);
-
-      dayMap[day].risksList.grass_pollen.push(entry.Risk.grass_pollen);
-      dayMap[day].risksList.tree_pollen.push(entry.Risk.tree_pollen);
-      dayMap[day].risksList.weed_pollen.push(entry.Risk.weed_pollen);
-    });
-
-    const dayArray = Object.values(dayMap).sort((a, b) => a.date - b.date);
-
-    const forecastDataProcessed = dayArray.map((dayData, index) => {
-      const countsList = dayData.countsList;
-      const risksList = dayData.risksList;
-
-      const counts = {
-        grass_pollen: this.average(countsList.grass_pollen),
-        tree_pollen: this.average(countsList.tree_pollen),
-        weed_pollen: this.average(countsList.weed_pollen)
-      };
-
-      const riskLevelsOrder = ["Low", "Moderate", "High", "Very High"];
-      const risks = {
-        grass_pollen: this.highestRisk(risksList.grass_pollen, riskLevelsOrder),
-        tree_pollen: this.highestRisk(risksList.tree_pollen, riskLevelsOrder),
-        weed_pollen: this.highestRisk(risksList.weed_pollen, riskLevelsOrder)
-      };
-
-      const maxCount = Math.max(counts.grass_pollen, counts.tree_pollen, counts.weed_pollen);
-
-      const highestPollenTypes = [];
-      ["grass_pollen", "tree_pollen", "weed_pollen"].forEach(source => {
-        if (counts[source] === maxCount && counts[source] > 0) {
-          highestPollenTypes.push({
-            source: source.replace('_pollen', '').replace(/\b\w/g, l => l.toUpperCase()),
-            risk: risks[source],
-            count: Math.round(counts[source])
+      const pollenCounts = entry.values;
+      ["tree_pollen", "grass_pollen", "weed_pollen"].forEach(type => {
+        if (pollenCounts[type] > 0) {
+          dayMap[day].highestPollenTypes.push({
+            source: type.replace('_pollen', '').replace(/\b\w/g, l => l.toUpperCase()),
+            risk: this.getPollenRisk(pollenCounts[type]),
+            count: pollenCounts[type]
           });
         }
       });
+    });
 
+    return Object.values(dayMap).sort((a, b) => a.date - b.date).map(dayData => {
       let weekday;
       const today = new Date(Date.now());
       const tomorrow = new Date(today);
@@ -353,27 +275,18 @@ Module.register("MMM-airquality", {
 
       return {
         weekday: weekday,
-        highestPollenTypes: highestPollenTypes
+        highestPollenTypes: dayData.highestPollenTypes
       };
     });
-
-    return forecastDataProcessed;
   },
 
-  average(arr) {
-    if (arr.length === 0) return 0;
-    const sum = arr.reduce((a, b) => a + b, 0);
-    return sum / arr.length;
-  },
-
-  highestRisk(risksArray, riskLevelsOrder) {
-    let highestRisk = "Low";
-    risksArray.forEach(risk => {
-      if (riskLevelsOrder.indexOf(risk) > riskLevelsOrder.indexOf(highestRisk)) {
-        highestRisk = risk;
-      }
-    });
-    return highestRisk;
+  getPollenRisk(index) {
+    if (index === 0) return "None";
+    else if (index === 1) return "Very Low";
+    else if (index === 2) return "Low";
+    else if (index === 3) return "Medium";
+    else if (index === 4) return "High";
+    else return "Very High";
   },
 
   processAirQuality(data) {
@@ -386,8 +299,8 @@ Module.register("MMM-airquality", {
     Log.info("[MMM-airquality] Pollen data received");
     Log.debug("[MMM-airquality] Pollen data payload:", data);
 
-    if (data.data && data.data.length > 0) {
-      this.pollenData = data.data[0];
+    if (data.data) {
+      this.pollenData = data.data;
     } else {
       Log.error("[MMM-airquality] Pollen data is empty");
       this.pollenData = {};
