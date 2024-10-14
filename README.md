@@ -5,7 +5,7 @@
 ![Open PRs](https://img.shields.io/github/issues-pr/PierreGode/MMM-airquality)
 ![Visitor Count](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/PierreGode/MMM-airquality)
 
-A module for the [MagicMirror²](https://magicmirror.builders) to display air quality and Pollen information using data from the ambee API. This module provides real-time air quality index (AQI), other pollutants and pollen related data.
+A module for the [MagicMirror²](https://magicmirror.builders) to display air quality and Pollen information using data from the Tomorrow.io API. This module provides real-time air quality index (AQI), other pollutants and pollen related data.
 
 ## Screenshots
 
@@ -33,7 +33,7 @@ git pull
 
 To use this module, you need to configure it in your config.js file of MagicMirror.
 
-You can obtain an API key from [ambee API](https://auth.ambeedata.com/users/register?redirectUrl=https://api-dashboard.getambee.com)
+You can obtain an API key from [tomorrow.io API](https://app.tomorrow.io/)
 
 ### Configuration Example
 
